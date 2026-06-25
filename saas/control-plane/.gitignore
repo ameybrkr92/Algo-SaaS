@@ -1,0 +1,4 @@
+# Local control-plane database (accounts + tenant directory) — never commit.
+control_plane.db
+__pycache__/
+*.pyc

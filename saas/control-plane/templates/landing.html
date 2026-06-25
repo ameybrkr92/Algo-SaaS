@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Algo trading SaaS for India{% endblock %}
+{% block content %}
+
+<section class="text-center max-w-3xl mx-auto px-4 pt-20 pb-12">
+  <span class="inline-block rounded-full bg-blue-50 text-brand text-xs font-semibold px-3 py-1 mb-6 uppercase tracking-wider">Your own hosted instance · 30+ brokers</span>
+  <h1 class="text-4xl sm:text-6xl font-bold tracking-tight">
+    Algo trading,<br><span class="text-brand">fully managed for you.</span>
+  </h1>
+  <p class="mt-6 text-lg text-slate-600">
+    Get your own private TradeYantra instance in minutes — design, backtest, and execute
+    strategies across 30+ Indian brokers. We host, secure, and update it. You trade.
+  </p>
+  <div class="mt-8 flex gap-3 justify-center">
+    <a href="#pricing" class="px-6 py-3 rounded-lg bg-brand text-white font-medium hover:bg-brand-dark">See pricing</a>
+    <a href="{{ url_for('signup') }}" class="px-6 py-3 rounded-lg border border-slate-300 font-medium hover:bg-slate-100">Start free signup</a>
+  </div>
+  <p class="mt-4 text-xs text-slate-400">Isolated instance · your own broker keys · your own subdomain</p>
+</section>
+
+<section class="max-w-5xl mx-auto px-4 py-8">
+  <div class="grid sm:grid-cols-3 gap-4 text-center">
+    {% for f in [
+      ('Isolated & private', 'Your own instance, database, and broker session — never shared.'),
+      ('SEBI-aligned', 'Your broker credentials, from your instance — you stay in control.'),
+      ('Zero ops', 'We provision, secure, back up, and upgrade. No servers to babysit.')] %}
+    <div class="rounded-xl border border-slate-200 bg-white p-6">
+      <div class="font-semibold">{{ f[0] }}</div>
+      <p class="mt-2 text-sm text-slate-600">{{ f[1] }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="pricing" class="max-w-6xl mx-auto px-4 py-16">
+  <h2 class="text-3xl font-bold text-center">Simple, transparent pricing</h2>
+  <p class="text-center text-slate-600 mt-2">One instance per plan. Cancel anytime.</p>
+  <div class="grid md:grid-cols-3 gap-6 mt-10">
+    {% for pid, plan in plans.items() %}
+    <div class="rounded-2xl border bg-white p-7 flex flex-col {{ 'border-brand ring-2 ring-brand/20 shadow-lg' if plan.get('highlight') else 'border-slate-200' }}">
+      {% if plan.get('highlight') %}<span class="self-start rounded-full bg-brand text-white text-xs font-semibold px-3 py-1 mb-3">Most popular</span>{% endif %}
+      <h3 class="text-xl font-semibold">{{ plan.name }}</h3>
+      <p class="text-sm text-slate-500 mt-1">{{ plan.tagline }}</p>
+      <div class="mt-5"><span class="text-4xl font-bold">₹{{ '{:,}'.format(plan.price_inr) }}</span><span class="text-slate-500">/mo</span></div>
+      <ul class="mt-6 space-y-2 text-sm flex-1">
+        {% for feat in plan.features %}
+        <li class="flex gap-2"><span class="text-brand">✓</span><span>{{ feat }}</span></li>
+        {% endfor %}
+      </ul>
+      <a href="{{ url_for('checkout', plan_id=pid) }}"
+         class="mt-7 block text-center px-5 py-3 rounded-lg font-medium {{ 'bg-brand text-white hover:bg-brand-dark' if plan.get('highlight') else 'border border-slate-300 hover:bg-slate-100' }}">
+        Choose {{ plan.name }}
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="text-center text-xs text-slate-400 mt-8">Prices are placeholders for the prototype. Offering algo execution to other traders is subject to SEBI rules — see the roadmap.</p>
+</section>
+
+{% endblock %}

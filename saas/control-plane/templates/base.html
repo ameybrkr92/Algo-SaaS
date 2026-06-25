@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ brand }}{% endblock %} · {{ brand }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: { DEFAULT: '#2563eb', dark: '#1d4ed8' } } } } }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+  <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200">
+    <nav class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <a href="{{ url_for('landing') }}" class="flex items-center gap-2">
+        <svg width="30" height="30" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="{{ brand }}">
+          <defs><linearGradient id="g" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#3B82F6"/><stop offset="1" stop-color="#1D4ED8"/></linearGradient></defs>
+          <rect width="64" height="64" rx="15" fill="url(#g)"/>
+          <path d="M20.5 20.5 L32 33.5 L43.5 20.5" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M32 33.5 L32 47" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/>
+          <circle cx="43.5" cy="20.5" r="3.4" fill="#fff"/>
+        </svg>
+        <span class="font-semibold text-lg">{{ brand }}</span>
+      </a>
+      <div class="flex items-center gap-1 text-sm">
+        <a href="{{ url_for('landing') }}#pricing" class="px-3 py-2 rounded-md hover:bg-slate-100">Pricing</a>
+        {% if account %}
+          <a href="{{ url_for('dashboard') }}" class="px-3 py-2 rounded-md hover:bg-slate-100">Dashboard</a>
+          {% if account['is_admin'] %}<a href="{{ url_for('admin') }}" class="px-3 py-2 rounded-md hover:bg-slate-100">Admin</a>{% endif %}
+          <form method="post" action="{{ url_for('logout') }}" class="inline">
+            <button class="px-3 py-2 rounded-md hover:bg-slate-100">Log out</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="px-3 py-2 rounded-md hover:bg-slate-100">Log in</a>
+          <a href="{{ url_for('signup') }}" class="px-4 py-2 rounded-md bg-brand text-white hover:bg-brand-dark">Get started</a>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-1 w-full">
+    <div class="max-w-6xl mx-auto px-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, msg in messages %}
+          <div class="mt-4 rounded-md px-4 py-3 text-sm {{ 'bg-emerald-50 text-emerald-800 border border-emerald-200' if category == 'ok' else 'bg-red-50 text-red-800 border border-red-200' }}">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-slate-500 flex flex-col sm:flex-row gap-2 justify-between">
+      <span>© 2026 {{ brand }} · Precision algo trading for Indian markets</span>
+      <span>Built on <a class="text-brand hover:underline" href="https://github.com/ameybrkr92/Algo-SaaS">OpenAlgo</a> · AGPL-3.0</span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="max-w-4xl mx-auto px-4 py-12">
+  <h1 class="text-2xl font-bold">Your dashboard</h1>
+  <p class="text-sm text-slate-500 mt-1">{{ account['email'] }}</p>
+
+  {% if tenant %}
+    <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <div class="text-sm text-slate-500">Your instance</div>
+          <a href="{{ tenant['instance_url'] }}" class="text-xl font-semibold text-brand hover:underline">{{ tenant['subdomain'] }}.tradeyantra.in</a>
+        </div>
+        {% set s = tenant['status'] %}
+        <span class="rounded-full px-3 py-1 text-xs font-semibold
+          {{ 'bg-emerald-50 text-emerald-700 border border-emerald-200' if 'running' in s or 'provisioned' in s
+             else 'bg-amber-50 text-amber-700 border border-amber-200' if s == 'pending'
+             else 'bg-red-50 text-red-700 border border-red-200' }}">{{ s }}</span>
+      </div>
+      <dl class="mt-6 grid sm:grid-cols-3 gap-4 text-sm">
+        <div><dt class="text-slate-500">Plan</dt><dd class="font-medium">{{ plan.name if plan else tenant['plan'] }}</dd></div>
+        <div><dt class="text-slate-500">Broker</dt><dd class="font-medium">{{ tenant['broker']|capitalize }}</dd></div>
+        <div><dt class="text-slate-500">Created</dt><dd class="font-medium">{{ tenant['created_at'][:10] }}</dd></div>
+      </dl>
+      <div class="mt-6 flex gap-3">
+        <a href="{{ tenant['instance_url'] }}" class="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark">Open instance</a>
+        <a href="{{ tenant['instance_url'] }}/setup" class="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-100">Set up admin login</a>
+      </div>
+      {% if 'demo' in tenant['status'] %}
+      <p class="mt-4 text-xs text-amber-600">Demo mode — the instance isn't actually running. Set <code>CONTROL_PLANE_PROVISION_MODE=live</code> with Docker to provision for real.</p>
+      {% endif %}
+    </div>
+
+    <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+      <h2 class="font-semibold">Next steps</h2>
+      <ol class="mt-3 space-y-2 text-sm text-slate-600 list-decimal list-inside">
+        <li>Open your instance and create your admin account.</li>
+        <li>Connect your broker — enter your API key/secret in the instance.</li>
+        <li>Set your broker's redirect URL to <code>{{ tenant['instance_url'] }}/{{ tenant['broker'] }}/callback</code>.</li>
+        <li>Paper-trade in Sandbox before going live.</li>
+      </ol>
+    </div>
+  {% else %}
+    <div class="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+      <p class="text-slate-600">You don't have an instance yet.</p>
+      <a href="{{ url_for('landing') }}#pricing" class="inline-block mt-4 px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark">Choose a plan</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
