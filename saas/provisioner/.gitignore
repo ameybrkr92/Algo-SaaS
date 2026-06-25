@@ -1,5 +1,7 @@
 # Never commit live tenant state — it contains per-tenant secrets and broker creds.
 tenants/
 tenants.json
+# Generated per-tenant Caddy snippets (live routing state). Master Caddyfile IS tracked.
+caddy/tenants/
 __pycache__/
 *.pyc

@@ -1,0 +1,19 @@
+# TradeYantra master Caddyfile.
+#
+# The provisioner writes one snippet per tenant into ./tenants/<id>.caddy and
+# reloads Caddy. Each snippet routes a subdomain to that tenant's container ports
+# and Caddy auto-issues TLS per subdomain (HTTP-01) as long as the subdomain's
+# DNS points at this host.
+#
+# Run Caddy with this file, e.g.:
+#   caddy run --config saas/provisioner/caddy/Caddyfile
+# or reload after a change:
+#   caddy reload --config saas/provisioner/caddy/Caddyfile
+
+{
+	# ACME contact for Let's Encrypt certificates.
+	email admin@tradeyantra.in
+}
+
+# Per-tenant site blocks (generated). A glob that matches nothing is fine.
+import tenants/*.caddy

@@ -22,6 +22,8 @@ health-checks it, and records everything in `tenants.json`.
 | `webhook.py` | Razorpay webhook → calls the CLI (activate→create/resume, halt→suspend). |
 | `tenants.json` | Local registry (gitignored — holds tenant state). |
 | `tenants/<id>/` | Generated `.env` + `docker-compose.yml` per tenant (gitignored — secrets). |
+| `caddy/Caddyfile` | Master reverse-proxy config; imports per-tenant snippets (tracked). |
+| `caddy/tenants/<id>.caddy` | Generated per-tenant routing snippet (gitignored — live state). |
 
 ## Quick start
 
@@ -46,18 +48,36 @@ After `create`, point the customer's broker **redirect URL** at
 `https://<domain>/<broker>/callback` and route the subdomain to the published
 localhost port with your reverse proxy (Caddy/Traefik) — see below.
 
-## Routing (shared reverse proxy)
+## Routing (automated — Caddy)
 
-Each tenant publishes only on `127.0.0.1:<flask_port>`. A single Caddy instance maps
-subdomains to ports and auto-issues TLS. Example `Caddyfile`:
+Routing is now wired automatically. On `create`, the provisioner writes a per-tenant
+snippet to `caddy/tenants/<id>.caddy` and reloads Caddy; on `destroy` it removes the
+snippet and reloads. The master [`caddy/Caddyfile`](caddy/Caddyfile) imports all
+snippets and Caddy auto-issues TLS per subdomain (HTTP-01), so each tenant gets HTTPS
+with no manual cert steps.
+
+Each generated snippet routes the subdomain to that tenant's container ports —
+`/ws` → the market-data WebSocket port, everything else (UI, REST, Socket.IO) → Flask:
 
 ```
-acme.tradeyantra.in   { reverse_proxy 127.0.0.1:5000 }
-globex.tradeyantra.in { reverse_proxy 127.0.0.1:5001 }
+acme.tradeyantra.in {
+    @ws path /ws /ws/*
+    reverse_proxy @ws 127.0.0.1:8765
+    reverse_proxy 127.0.0.1:5000
+}
 ```
 
-(The provisioner can template these entries in a later iteration; for now add one
-line per tenant — or use Traefik labels on the compose service.)
+Run Caddy once (it stays up and is reloaded by the provisioner):
+
+```bash
+caddy run --config caddy/Caddyfile        # foreground, or run it as a service
+```
+
+**Prereqs for live TLS:** each tenant subdomain's DNS must point at this host
+(a wildcard `*.tradeyantra.in` A-record is simplest), and ports 80/443 must be open.
+For local testing without public DNS, replace the domain with `localhost:PORT` or use
+Caddy's `tls internal`. Containers publish ports only on `127.0.0.1`, so Caddy is the
+sole public entry point.
 
 ## Billing → provisioning
 
