@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { BRAND } from '@/config/brand'
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Home',
@@ -98,7 +99,7 @@ function getPageTitle(pathname: string): string {
     }
   }
 
-  return 'OpenAlgo'
+  return BRAND.name
 }
 
 export function usePageTitle() {
@@ -106,6 +107,6 @@ export function usePageTitle() {
 
   useEffect(() => {
     const title = getPageTitle(pathname)
-    document.title = title === 'OpenAlgo' ? 'OpenAlgo' : `${title} | OpenAlgo`
+    document.title = title === BRAND.name ? BRAND.name : `${title} | ${BRAND.name}`
   }, [pathname])
 }

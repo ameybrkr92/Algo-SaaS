@@ -1,12 +1,12 @@
 import {
   ArrowLeft,
+  BookOpen,
   Eye,
   EyeOff,
   Github,
   Info,
   Loader2,
   LogIn,
-  MessageCircle,
   ShieldCheck,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { BRAND } from '@/config/brand'
 import { useAuthStore } from '@/stores/authStore'
 import { showToast } from '@/utils/toast'
 
@@ -222,10 +223,10 @@ export default function Login() {
           <Card className="w-full max-w-md order-1 lg:order-2 shadow-xl">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <img src="/logo.png" alt="OpenAlgo" className="h-20 w-20" />
+                <img src={BRAND.logo} alt={BRAND.name} className="h-20 w-20" />
               </div>
               <CardTitle className="text-2xl">Welcome Back</CardTitle>
-              <CardDescription>Sign in to your OpenAlgo account</CardDescription>
+              <CardDescription>Sign in to your {BRAND.name} account</CardDescription>
             </CardHeader>
             <CardContent>
               {step === 'password' ? (
@@ -370,7 +371,7 @@ export default function Login() {
           {/* Welcome Content - Second on mobile */}
           <div className="flex-1 max-w-xl text-center lg:text-left order-2 lg:order-1">
             <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-              Welcome to <span className="text-primary">OpenAlgo</span>
+              Welcome to <span className="text-primary">{BRAND.name}</span>
             </h1>
             <p className="text-lg lg:text-xl mb-8 text-muted-foreground">
               Sign in to your account to access your trading dashboard and manage your algorithmic
@@ -388,24 +389,24 @@ export default function Login() {
             <div className="flex justify-center lg:justify-start gap-4">
               <Button variant="outline" asChild>
                 <a
-                  href="https://github.com/marketcalls/openalgo"
+                  href={BRAND.links.docs}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <BookOpen className="h-5 w-5" />
+                  Docs
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a
+                  href={BRAND.links.github}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
                 >
                   <Github className="h-5 w-5" />
                   GitHub
-                </a>
-              </Button>
-              <Button variant="outline" asChild>
-                <a
-                  href="https://openalgo.in/discord"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  Discord
                 </a>
               </Button>
             </div>

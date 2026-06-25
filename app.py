@@ -34,7 +34,7 @@ if __name__ == "__main__":
     _debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "t")
     _is_reloader_parent = _debug and os.environ.get("WERKZEUG_RUN_MAIN") != "true"
     if not _is_reloader_parent:
-        print("\033[93mStarting OpenAlgo...\033[0m", flush=True)
+        print("\033[93mStarting TradeYantra...\033[0m", flush=True)
 
 import mimetypes
 
@@ -1023,8 +1023,8 @@ if __name__ == "__main__":
         G, C, M, W, Y, R, BD, DM = "\033[92m", "\033[96m", "\033[95m", "\033[97m", "\033[93m", "\033[0m", "\033[1m", "\033[2m"
         _ae = re.compile(r"\x1B\[[0-9;]*m")
         def _vl(t): return len(_ae.sub("", t))
-        _t = f" OpenAlgo v{_ver} "
-        _sl = "Your Personal Algo Trading Platform"
+        _t = f" TradeYantra v{_ver} "
+        _sl = "Precision Algo Trading for Indian Markets"
         _samps = ["", _sl, f"{W}{BD}Endpoints{R}", f"{W}Web App{R}    {C}{_wu}{R}", f"{W}WebSocket{R}  {M}{_wsu}{R}", f"{W}Docs{R}       {Y}{_du}{R}", f"{W}Status{R}     {G}{BD}Ready{R}"]
         _iw = max(50, max((_vl(s) for s in _samps), default=0))
         _W = max(_iw + 4, len(_t) + 5)

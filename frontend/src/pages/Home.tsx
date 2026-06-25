@@ -2,12 +2,10 @@ import {
   ArrowRight,
   BookOpen,
   Bot,
-  ClipboardList,
   Download,
   HelpCircle,
   LogIn,
   Menu,
-  MessageCircle,
   Moon,
   Sparkles,
   Sun,
@@ -16,6 +14,7 @@ import {
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
+import { BRAND } from '@/config/brand'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -54,9 +53,7 @@ export default function Home() {
   const navLinks = [
     { href: '/', label: 'Home', internal: true },
     { href: '/faq', label: 'FAQ', internal: true },
-    { href: 'https://openalgo.in/discord', label: 'Community', internal: false },
-    { href: 'https://openalgo.in/roadmap', label: 'Roadmap', internal: false },
-    { href: 'https://docs.openalgo.in', label: 'Docs', internal: false },
+    { href: BRAND.links.docs, label: 'Docs', internal: false },
   ]
 
   return (
@@ -79,8 +76,8 @@ export default function Home() {
                   <SheetDescription>Main navigation and quick access links</SheetDescription>
                 </SheetHeader>
                 <div className="flex items-center gap-2 mb-8">
-                  <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-                  <span className="text-xl font-semibold">OpenAlgo</span>
+                  <img src={BRAND.logo} alt={BRAND.name} className="h-8 w-8" />
+                  <span className="text-xl font-semibold">{BRAND.name}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -121,25 +118,7 @@ export default function Home() {
                     Download
                   </Link>
                   <a
-                    href="https://openalgo.in/discord"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    Community
-                  </a>
-                  <a
-                    href="https://openalgo.in/roadmap"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent"
-                  >
-                    <ClipboardList className="h-5 w-5" />
-                    Roadmap
-                  </a>
-                  <a
-                    href="https://docs.openalgo.in"
+                    href={BRAND.links.docs}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent"
@@ -152,8 +131,8 @@ export default function Home() {
             </Sheet>
 
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-              <span className="text-xl font-bold hidden sm:inline">OpenAlgo</span>
+              <img src={BRAND.logo} alt={BRAND.name} className="h-8 w-8" />
+              <span className="text-xl font-bold hidden sm:inline">{BRAND.name}</span>
             </Link>
           </div>
 
@@ -211,7 +190,7 @@ export default function Home() {
               <span className="block text-primary">Algo Trading Platform</span>
             </h1>
             <p className="text-lg sm:text-xl font-semibold mb-6 text-primary">
-              Community Driven Algo Trading Platform
+              {BRAND.subTagline}
             </p>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
               Test and Execute your Trading ideas, Connect your favorite Trading Platforms, AI
@@ -269,7 +248,7 @@ export default function Home() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 max-w-6xl mx-auto">
-            {/* OpenAlgo MCP card */}
+            {/* TradeYantra MCP card */}
             <Card className="group transition-colors hover:border-purple-400/40">
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-4">
@@ -278,7 +257,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
-                      OpenAlgo MCP
+                      {BRAND.name} MCP
                       <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                     </h3>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">
@@ -287,7 +266,7 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Connect your OpenAlgo account to Claude, Cursor, Windsurf, or ChatGPT. Place
+                  Connect your {BRAND.name} account to Claude, Cursor, Windsurf, or ChatGPT. Place
                   orders, check positions, and pull live prices by simply asking - no dashboards, no
                   clicks.
                 </p>
@@ -308,7 +287,7 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* OpenAlgo Skills card */}
+            {/* TradeYantra Skills card */}
             <Card className="group transition-colors hover:border-emerald-400/40">
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-4">
@@ -317,7 +296,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
-                      OpenAlgo Skills
+                      {BRAND.name} Skills
                       <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                     </h3>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">

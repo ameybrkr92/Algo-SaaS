@@ -12,7 +12,7 @@ import { CRYPTO_EXCHANGE_VALUE, SCHEDULE_DAYS, STRATEGY_EXCHANGES } from '@/type
 import { showToast } from '@/utils/toast'
 
 const EXAMPLE_STRATEGY = `"""
-Example OpenAlgo Strategy
+Example TradeYantra Strategy
 This is a minimal example showing how to use the OpenAlgo Python SDK.
 """
 

@@ -1,16 +1,8 @@
-import {
-  BookOpen,
-  ClipboardList,
-  Download,
-  HelpCircle,
-  Menu,
-  MessageCircle,
-  Moon,
-  Sun,
-} from 'lucide-react'
+import { BookOpen, Download, HelpCircle, Mail, Menu, Moon, Sun } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Footer } from '@/components/layout/Footer'
+import { BRAND } from '@/config/brand'
 import {
   Accordion,
   AccordionContent,
@@ -34,24 +26,24 @@ const faqData = [
     category: 'General',
     questions: [
       {
-        question: 'What is OpenAlgo?',
+        question: 'What is TradeYantra?',
         answer:
-          'OpenAlgo is an open-source algorithmic trading platform that provides a unified API layer across 24+ Indian brokers. It enables seamless integration with TradingView, Amibroker, Excel, Python, and AI agents, allowing traders to automate their trading strategies without being locked into a single broker.',
+          'TradeYantra is an algorithmic trading platform for Indian markets that provides a unified API layer across 30+ Indian brokers. It lets you design, backtest, and execute strategies, and integrate with TradingView, Amibroker, Excel, Python, and AI agents, without being locked into a single broker. TradeYantra is built on the open-source OpenAlgo project.',
       },
       {
         question: 'Which brokers are supported?',
         answer:
-          'OpenAlgo supports 24+ Indian brokers including Zerodha, Angel One, Dhan, Fyers, ICICI Direct, HDFC Securities, Kotak Securities, Upstox, 5paisa, Alice Blue, Firstock, Flattrade, IIFL, Jainam, Mastertrust, Motilal Oswal, Nuvama, Paytm Money, Rupeezy, Samco, Shoonya (Finvasia), and more. New brokers are being added regularly.',
+          'TradeYantra supports 30+ Indian brokers including Zerodha, Angel One, Dhan, Fyers, Kotak Neo, Upstox, 5paisa, Alice Blue, Firstock, Flattrade, IIFL, Groww, Motilal Oswal, Paytm Money, Samco, Shoonya (Finvasia), Tradejini, and more. New brokers are added regularly.',
       },
       {
         question: 'What are the system requirements?',
         answer:
-          'OpenAlgo requires Python 3.12 or higher and Node.js 20+ for the frontend. It runs on Windows, macOS, and Linux. For optimal performance, we recommend at least 4GB RAM and a stable internet connection. The application uses SQLite by default, making it lightweight and easy to deploy.',
+          'TradeYantra requires Python 3.12 or higher and Node.js 20+ for the frontend. It runs on Windows, macOS, and Linux. For optimal performance we recommend at least 4GB RAM and a stable internet connection. The application uses SQLite by default, making it lightweight and easy to deploy.',
       },
       {
-        question: 'Where can I host OpenAlgo?',
+        question: 'Where can I host TradeYantra?',
         answer:
-          'OpenAlgo can be hosted locally on your personal computer, on a VPS (Virtual Private Server), or in the cloud. Popular options include AWS, Google Cloud, DigitalOcean, or any Linux VPS provider. For Indian traders, hosting on an Indian VPS ensures low latency connections to broker servers.',
+          'TradeYantra can run locally on your own computer, on a VPS (Virtual Private Server), or in the cloud. Popular options include AWS, Google Cloud, DigitalOcean, or any Linux VPS provider. For Indian traders, hosting on an Indian VPS ensures low-latency connections to broker servers.',
       },
     ],
   },
@@ -61,17 +53,17 @@ const faqData = [
       {
         question: 'What are the costs involved?',
         answer:
-          'OpenAlgo is completely free and open-source under the AGPL license. There are no licensing fees, subscription costs, or hidden charges. You only pay for your hosting infrastructure (if using cloud/VPS) and standard brokerage charges from your broker. Self-hosting on your own computer is completely free.',
+          'Self-hosting TradeYantra on your own machine is free — it is based on the open-source (AGPL-3.0) OpenAlgo project, so there are no licensing fees in the software itself. You only pay for any hosting infrastructure you choose (if using cloud/VPS) and the standard brokerage charges from your broker.',
       },
       {
-        question: 'How secure is OpenAlgo?',
+        question: 'How secure is TradeYantra?',
         answer:
-          'Security is a top priority. OpenAlgo stores API credentials locally on your machine with encryption. It uses HTTPS for all communications, implements CSRF protection, rate limiting, and secure session management. Since it runs on your own infrastructure, you have complete control over your data. We recommend using strong passwords and enabling 2FA where available.',
+          'Security is a top priority. TradeYantra stores broker API credentials locally with encryption at rest. It uses HTTPS for all communications, CSRF protection, rate limiting, Argon2 password hashing, optional TOTP two-factor authentication, and secure session management. Because it runs on your own infrastructure, you retain complete control of your data. We recommend strong passwords and enabling 2FA.',
       },
       {
         question: 'Why do I need to login daily?',
         answer:
-          'Daily login is required by Indian brokers for security compliance. Broker sessions typically expire at the end of each trading day or after a set period (usually around 3 AM IST). This is a regulatory requirement, not an OpenAlgo limitation. The platform makes re-authentication quick and easy with TOTP support for most brokers.',
+          'Daily login is required by Indian brokers for security compliance. Broker sessions typically expire at the end of each trading day or after a set period (usually around 3 AM IST). This is a regulatory requirement, not a TradeYantra limitation. The platform makes re-authentication quick and easy with TOTP support for most brokers.',
       },
     ],
   },
@@ -79,24 +71,24 @@ const faqData = [
     category: 'Features & Integration',
     questions: [
       {
-        question: 'Which platforms can I integrate with OpenAlgo?',
+        question: 'Which platforms can I integrate with TradeYantra?',
         answer:
-          'OpenAlgo integrates with TradingView (via webhooks), Amibroker (via AFL), GoCharting, ChartInk, MetaTrader, Excel, Google Sheets, Python, Node.js, Go, N8N, and any platform that can send HTTP webhooks. You can also use the REST API directly from any programming language.',
+          'TradeYantra integrates with TradingView (via webhooks), Amibroker (via AFL), GoCharting, ChartInk, MetaTrader, Excel, Google Sheets, Python, Node.js, Go, N8N, and any platform that can send HTTP webhooks. You can also call the REST API directly from any programming language.',
       },
       {
-        question: 'Does OpenAlgo support sandbox trading?',
+        question: 'Does TradeYantra support sandbox trading?',
         answer:
-          'Yes! OpenAlgo includes an Analyzer/Sandbox mode with sandbox capital of Rs. 1 Crore. This allows you to test strategies in a realistic environment with proper margin calculations, auto square-off at exchange timings, and complete isolation from live trading. Perfect for testing before going live.',
+          'Yes! TradeYantra includes an Analyzer/Sandbox mode with ₹1 Crore of sandbox capital. You can test strategies in a realistic environment with proper margin calculations, auto square-off at exchange timings, and complete isolation from live trading. Perfect for validating before going live.',
       },
       {
         question: 'Can I run multiple strategies simultaneously?',
         answer:
-          'Yes, OpenAlgo supports running multiple strategies simultaneously. You can create different webhook endpoints for different strategies, manage them independently, and monitor their performance through the dashboard. The Action Center allows you to control execution modes for each strategy.',
+          'Yes, TradeYantra runs multiple strategies in parallel with process isolation. You can create different webhook endpoints for different strategies, manage them independently, and monitor their performance through the dashboard. The Action Center lets you control the execution mode for each strategy.',
       },
       {
-        question: 'Does OpenAlgo provide real-time market data?',
+        question: 'Does TradeYantra provide real-time market data?',
         answer:
-          'Yes, OpenAlgo includes a unified WebSocket server that streams real-time market data from your broker. This data is used for live position tracking, P&L updates, and can be accessed by your strategies. The data is normalized across all brokers for consistent handling.',
+          'Yes, TradeYantra includes a unified WebSocket server that streams real-time market data from your broker. This data powers live position tracking, P&L updates, and your strategies. It is normalized across all brokers for consistent handling.',
       },
     ],
   },
@@ -104,24 +96,24 @@ const faqData = [
     category: 'Licensing & Usage',
     questions: [
       {
-        question: 'Can I use OpenAlgo for my proprietary trading strategies?',
+        question: 'Can I use TradeYantra for my own trading strategies?',
         answer:
-          'Yes, you can use OpenAlgo for your personal or proprietary trading strategies. The AGPL license allows free use for personal trading. However, if you modify OpenAlgo and provide it as a service to others, you must make your modifications open source.',
+          'Yes, you can use TradeYantra for your personal or proprietary trading strategies. It is built on the OpenAlgo project, licensed under AGPL-3.0, which permits free use for both personal and commercial trading.',
       },
       {
-        question: 'Can I rebrand OpenAlgo for commercial use?',
+        question: 'What license is TradeYantra under?',
         answer:
-          'Under the AGPL license, you can modify OpenAlgo, but any derivative work must also be open source and credit the original project. For commercial licensing options that allow rebranding without open-source requirements, please contact the OpenAlgo team.',
+          'TradeYantra is built on OpenAlgo, which is licensed under the GNU AGPL-3.0. This is a strong copyleft license: you may use, modify, and self-host the platform freely, but if you offer a modified version to others as a network service, the AGPL requires you to make your source code available to those users. The "Built on OpenAlgo" credit in the footer is part of honoring that license.',
       },
       {
-        question: 'Can I charge others for using my OpenAlgo setup?',
+        question: 'Can I offer TradeYantra as a service to other traders?',
         answer:
-          'If you provide OpenAlgo as a service to others (even if modified), the AGPL license requires you to share your source code. For commercial service offerings without this requirement, commercial licensing options are available.',
+          'You can, with two caveats. First, under AGPL-3.0, if you run a modified version as a network service you must make the corresponding source available to your users. Second, in India, offering algo execution to other traders is subject to SEBI regulation — including broker empanelment of algo providers and per-user static-IP whitelisting — so review the regulatory requirements before going multi-user.',
       },
       {
-        question: 'Can I integrate OpenAlgo with GPT/AI assistants?',
+        question: 'Can I integrate TradeYantra with GPT/AI assistants?',
         answer:
-          'Yes! OpenAlgo provides REST APIs that can be called from AI assistants, chatbots, or any automated system. You can build AI-powered trading assistants that use OpenAlgo to execute trades based on natural language commands or AI analysis.',
+          'Yes! TradeYantra exposes REST APIs and an MCP server that AI assistants like Claude, Cursor, Windsurf, or ChatGPT can call. You can build AI-powered trading assistants that place orders, check positions, and pull live prices through natural-language commands.',
       },
     ],
   },
@@ -134,9 +126,7 @@ export default function Faq() {
   const navLinks = [
     { href: '/', label: 'Home', internal: true },
     { href: '/faq', label: 'FAQ', internal: true },
-    { href: 'https://openalgo.in/discord', label: 'Community', internal: false },
-    { href: 'https://openalgo.in/roadmap', label: 'Roadmap', internal: false },
-    { href: 'https://docs.openalgo.in', label: 'Docs', internal: false },
+    { href: BRAND.links.docs, label: 'Docs', internal: false },
   ]
 
   return (
@@ -159,8 +149,8 @@ export default function Faq() {
                   <SheetDescription>Main navigation and quick access links</SheetDescription>
                 </SheetHeader>
                 <div className="flex items-center gap-2 mb-8">
-                  <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-                  <span className="text-xl font-semibold">OpenAlgo</span>
+                  <img src={BRAND.logo} alt={BRAND.name} className="h-8 w-8" />
+                  <span className="text-xl font-semibold">{BRAND.name}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -201,25 +191,7 @@ export default function Faq() {
                     Download
                   </Link>
                   <a
-                    href="https://openalgo.in/discord"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    Community
-                  </a>
-                  <a
-                    href="https://openalgo.in/roadmap"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent"
-                  >
-                    <ClipboardList className="h-5 w-5" />
-                    Roadmap
-                  </a>
-                  <a
-                    href="https://docs.openalgo.in"
+                    href={BRAND.links.docs}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent"
@@ -232,8 +204,8 @@ export default function Faq() {
             </Sheet>
 
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-              <span className="text-xl font-bold hidden sm:inline">OpenAlgo</span>
+              <img src={BRAND.logo} alt={BRAND.name} className="h-8 w-8" />
+              <span className="text-xl font-bold hidden sm:inline">{BRAND.name}</span>
             </Link>
           </div>
 
@@ -280,7 +252,7 @@ export default function Faq() {
           <div className="text-center mb-12">
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Find answers to common questions about OpenAlgo, its features, security, and
+              Find answers to common questions about {BRAND.name}, its features, security, and
               licensing.
             </p>
           </div>
@@ -292,7 +264,7 @@ export default function Faq() {
                 <CardHeader>
                   <CardTitle>{category.category}</CardTitle>
                   <CardDescription>
-                    {category.category === 'General' && 'Basic information about OpenAlgo'}
+                    {category.category === 'General' && `Basic information about ${BRAND.name}`}
                     {category.category === 'Costs & Security' &&
                       'Pricing, security, and compliance details'}
                     {category.category === 'Features & Integration' &&
@@ -331,7 +303,7 @@ export default function Faq() {
                     Comprehensive guides and API references
                   </p>
                   <Button variant="outline" asChild>
-                    <a href="https://docs.openalgo.in" target="_blank" rel="noopener noreferrer">
+                    <a href={BRAND.links.docs} target="_blank" rel="noopener noreferrer">
                       Read Docs
                     </a>
                   </Button>
@@ -340,17 +312,15 @@ export default function Faq() {
 
               <Card className="text-center">
                 <CardHeader>
-                  <MessageCircle className="h-10 w-10 mx-auto text-primary" />
-                  <CardTitle className="text-lg">Discord Community</CardTitle>
+                  <Mail className="h-10 w-10 mx-auto text-primary" />
+                  <CardTitle className="text-lg">Email Support</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Join our active community for support
+                    Reach out to our team for help
                   </p>
                   <Button variant="outline" asChild>
-                    <a href="https://openalgo.in/discord" target="_blank" rel="noopener noreferrer">
-                      Join Discord
-                    </a>
+                    <a href={`mailto:${BRAND.email}`}>Contact Us</a>
                   </Button>
                 </CardContent>
               </Card>
