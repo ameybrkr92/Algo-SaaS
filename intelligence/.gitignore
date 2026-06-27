@@ -1,0 +1,4 @@
+# generated brain artifacts — not source
+__pycache__/
+*.pyc
+*.db
