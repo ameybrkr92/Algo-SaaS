@@ -49,6 +49,11 @@ Two halves:
 
 Workspace root: `C:\Users\ameyb\OneDrive\Desktop\Algo-trade\`
 
+> **Note (2026-06-28):** when published to the public `Algo-SaaS` repo (whose root *is*
+> `openalgo/`), `tradeyantra-cockpit/` and this `HANDOVER.md` were **moved inside
+> `openalgo/`**. So the tree below shows them as root-siblings for history, but on disk
+> they now live at `openalgo/tradeyantra-cockpit/` and `openalgo/HANDOVER.md`.
+
 ```
 Algo-trade/
 ├─ HANDOVER.md                  ← this file
@@ -98,8 +103,8 @@ cd openalgo && PYTHONUTF8=1 uv run app.py
 # 2. Reasoning API (the brain) — port 6061   [REQUIRED for the brain tabs]
 cd openalgo && PYTHONUTF8=1 uv run python intelligence/service.py
 
-# 3. The new cockpit app — port 5174
-cd tradeyantra-cockpit && npm run dev
+# 3. The new cockpit app — port 5174  (now lives inside openalgo/)
+cd openalgo/tradeyantra-cockpit && npm run dev
 #    → open http://localhost:5174
 ```
 
