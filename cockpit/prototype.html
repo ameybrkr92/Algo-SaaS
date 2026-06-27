@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TradeYantra Cockpit — prototype</title>
+<style>
+  :root{
+    --bg-app:#0B0E14; --bg-panel:#11151E; --bg-elev:#161B26; --bg-inset:#0E121A;
+    --border:#1E2530; --border-strong:#2A3340;
+    --t1:#E6E9EF; --t2:#9AA4B2; --t3:#5B6472;
+    --up:#16C784; --down:#EA3943; --accent:#3B82F6; --warn:#F0A020; --info:#7C5CFF;
+    --sans:"Inter","Segoe UI",Roboto,system-ui,sans-serif;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg-app);color:var(--t1);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden}
+  .ic{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:-.15em;flex:none}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .up{color:var(--up)} .down{color:var(--down)}
+  .app{display:grid;grid-template-columns:64px 1fr;height:100vh}
+
+  .rail{background:var(--bg-inset);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+  .logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+  .logo svg{width:24px;height:24px}
+  .nav{width:46px;height:44px;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--t3);cursor:pointer;position:relative;transition:.12s}
+  .nav .ic{width:19px;height:19px}
+  .nav span{font-size:9px;letter-spacing:.02em}
+  .nav:hover{color:var(--t1);background:var(--bg-elev)}
+  .nav.active{color:var(--t1);background:var(--bg-elev)}
+  .nav.active::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--accent)}
+  .nav .badge{position:absolute;top:6px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--down)}
+  .rail .sp{flex:1}
+
+  .main{display:grid;grid-template-rows:52px 1fr;min-width:0}
+  .topbar{display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg-panel)}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--border-strong);white-space:nowrap}
+  .dot{width:7px;height:7px;border-radius:50%}
+  .cmd{flex:1;max-width:540px;margin:0 auto;display:flex;align-items:center;gap:8px;background:var(--bg-inset);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--t2);cursor:text;transition:.12s}
+  .cmd:hover,.cmd:focus-within{border-color:var(--accent)}
+  .cmd input{flex:1;background:none;border:none;outline:none;color:var(--t1);font-size:13px;font-family:inherit}
+  .cmd .ic{font-size:16px;color:var(--info)}
+  .kbd{font-family:var(--mono);font-size:11px;color:var(--t3);border:1px solid var(--border-strong);border-radius:5px;padding:1px 6px}
+  .iconbtn{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;font-size:18px}
+  .iconbtn:hover{background:var(--bg-elev);color:var(--t1)}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#fff}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--t2)}
+  .sw{width:34px;height:19px;border-radius:999px;background:var(--bg-elev);border:1px solid var(--border-strong);position:relative}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--t2)}
+
+  .content{display:grid;grid-template-columns:1fr 348px;min-height:0;overflow:hidden}
+  .work{padding:14px 16px;overflow:auto}
+  .view{display:none} .view.on{display:flex;flex-direction:column;gap:14px}
+  .h{font-size:18px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .h small{font-size:12px;color:var(--t2);font-weight:400}
+  .seg{display:inline-flex;background:var(--bg-inset);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px}
+  .seg button{font:inherit;font-size:12px;color:var(--t2);background:none;border:none;padding:5px 11px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--bg-elev);color:var(--t1)}
+
+  .strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .tile{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+  .tile .lab{font-size:11px;color:var(--t2);display:flex;align-items:center;justify-content:space-between}
+  .tile .val{font-size:22px;font-weight:600;margin-top:5px}
+  .tile .sub{font-size:11px;color:var(--t3);margin-top:2px}
+  .pulse{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .pcard{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+  .pcard .nm{font-size:11px;color:var(--t2)} .pcard .pr{font-size:16px;font-weight:600} .pcard .ch{font-size:11px}
+
+  .panel{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .ptitle{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;color:var(--t1)}
+  .ptitle .act{font-size:11px;color:var(--t2);font-weight:400;display:flex;gap:14px}
+  .ptitle .act span{cursor:pointer} .ptitle .act span:hover{color:var(--t1)}
+  .split{display:grid;grid-template-columns:1fr 300px;gap:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+  table{width:100%;border-collapse:collapse}
+  thead th{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--t3);text-align:right;padding:8px 14px;background:var(--bg-inset);font-weight:500}
+  thead th:first-child{text-align:left}
+  tbody td{padding:9px 14px;border-top:1px solid var(--border);text-align:right;font-size:12.5px}
+  tbody td:first-child{text-align:left}
+  tbody tr:hover{background:var(--bg-elev)}
+  .sym{font-weight:500;color:var(--t1)} .meta{font-size:10.5px;color:var(--t3)}
+  .tag{font-size:10px;padding:1px 6px;border-radius:5px;border:1px solid var(--border-strong);color:var(--t2)}
+  .b{color:var(--up)} .s{color:var(--down)}
+
+  .wl{display:flex;flex-direction:column}
+  .wlrow{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--border);cursor:pointer}
+  .wlrow:hover{background:var(--bg-elev)}
+  .wlrow .l{display:flex;flex-direction:column}.wlrow .r{text-align:right}
+
+  /* depth ladder */
+  .depth{display:grid;grid-template-columns:1fr 1fr;font-size:12px}
+  .dcol{display:flex;flex-direction:column}
+  .drow{position:relative;display:flex;justify-content:space-between;padding:6px 12px;border-top:1px solid var(--border)}
+  .drow .bar{position:absolute;top:0;bottom:0;opacity:.14}
+  .bid .bar{right:0;background:var(--up)} .ask .bar{left:0;background:var(--down)}
+  .drow span{position:relative;z-index:1}
+
+  /* heatmap */
+  .heat{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px}
+  .hcell{border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px}
+  .hcell .n{font-size:11px} .hcell .c{font-size:12px;font-weight:600;font-family:var(--mono)}
+
+  /* option chain */
+  .chain td,.chain th{padding:6px 8px;font-size:11.5px}
+  .chain .strike{background:var(--bg-inset);font-weight:600;text-align:center;font-family:var(--mono)}
+  .chain tr.atm td{background:rgba(59,130,246,.10)}
+  .chain .itm{background:rgba(124,92,255,.05)}
+  .chain thead th{text-align:center}
+
+  /* order ticket */
+  .ticket{padding:14px;display:flex;flex-direction:column;gap:11px}
+  .bs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .bs button{font:inherit;font-size:13px;font-weight:600;padding:9px;border-radius:8px;border:1px solid var(--border-strong);background:none;cursor:pointer}
+  .bs .buy.on{background:rgba(22,199,132,.14);border-color:var(--up);color:var(--up)}
+  .bs .sell.on{background:rgba(234,57,67,.14);border-color:var(--down);color:var(--down)}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:11px;color:var(--t2)}
+  .inp{background:var(--bg-inset);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--t1);font:inherit;font-size:13px;font-family:var(--mono);outline:none}
+  .inp:focus{border-color:var(--accent)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-size:11.5px;color:var(--t2);border:1px solid var(--border-strong);border-radius:7px;padding:5px 10px;cursor:pointer}
+  .chip.on{background:var(--bg-elev);color:var(--t1);border-color:var(--accent)}
+  .place{font:inherit;font-size:14px;font-weight:600;padding:11px;border-radius:9px;border:none;background:var(--up);color:#04140d;cursor:pointer}
+  .mrow{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);padding:3px 0}
+  .mrow b{color:var(--t1);font-family:var(--mono)}
+
+  /* meters */
+  .meter{margin:0 14px 12px}
+  .meter .top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+  .meter .bar{height:8px;border-radius:6px;background:var(--bg-inset);position:relative;overflow:hidden}
+  .meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+  .meter .lim{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--t2)}
+  .killbtn{margin:12px 14px;display:flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:14px;font-weight:600;padding:13px;border-radius:10px;border:1px solid var(--down);background:rgba(234,57,67,.10);color:var(--down);cursor:pointer}
+  .rule{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-top:1px solid var(--border);font-size:12.5px}
+  .rule .num{color:var(--t1)}
+
+  .stub{padding:48px;text-align:center;color:var(--t2);display:flex;flex-direction:column;align-items:center;gap:10px}
+  .stub .ic{width:30px;height:30px;color:var(--t3)}
+
+  /* reasoning */
+  .evbtns{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px}
+  .evbtn{font:inherit;font-size:12.5px;padding:7px 13px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-elev);color:var(--t1);cursor:pointer}
+  .evbtn.on{border-color:var(--accent);background:rgba(59,130,246,.14)}
+  .qa{display:grid;grid-template-columns:130px 1fr;gap:7px 14px;padding:12px 14px;font-size:12.5px}
+  .qa .q{color:var(--t2)} .qa .a{color:var(--t1)}
+  .irow{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--border)}
+  .irow .nm{width:160px;font-weight:500;font-size:12.5px}
+  .ibar{flex:1;height:8px;border-radius:6px;background:var(--bg-inset);position:relative}
+  .ibar .f{position:absolute;top:0;border-radius:6px;height:100%}
+  .ibar .f.pos{left:50%;background:var(--up)} .ibar .f.neg{right:50%;background:var(--down)}
+  .ibar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--border-strong)}
+  .ival{width:54px;text-align:right;font-family:var(--mono);font-size:12px}
+  .icv{width:38px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--t3)}
+  .chainline{font-size:11px;color:var(--t3);line-height:1.5;padding:0 14px 9px 14px}
+  .chainline b{color:var(--t2);font-weight:400}
+  .star{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--border);font-size:12.5px}
+  .star .tag{margin-left:auto}
+
+  /* copilot */
+  .copilot{background:var(--bg-panel);border-left:1px solid var(--border);display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+  .cohead{padding:12px 14px;border-bottom:1px solid var(--border)}
+  .cohead .t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+  .cohead .ai{width:24px;height:24px;border-radius:7px;background:rgba(124,92,255,.15);color:var(--info);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .tiers{display:flex;gap:4px;margin-top:10px;background:var(--bg-inset);border:1px solid var(--border);border-radius:8px;padding:3px}
+  .tiers button{flex:1;font:inherit;font-size:11px;color:var(--t2);background:none;border:none;padding:5px;border-radius:6px;cursor:pointer}
+  .tiers button.on{background:var(--bg-elev);color:var(--t1)}
+  .feed{overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .ins{border:1px solid var(--border);border-radius:10px;padding:11px 12px;background:var(--bg-elev)}
+  .ins .ih{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:500;margin-bottom:6px}
+  .ins .ih .ic{width:15px;height:15px}
+  .ins p{font-size:12.5px;color:var(--t2);line-height:1.5}
+  .ins p b{color:var(--t1);font-weight:500}
+  .ins .row{display:flex;gap:8px;margin-top:10px}
+  .ins .row button{font:inherit;font-size:11.5px;padding:5px 11px;border-radius:7px;cursor:pointer;border:1px solid var(--border-strong);background:none;color:var(--t1)}
+  .ins .row .pri{background:var(--accent);border-color:var(--accent);color:#fff}
+  .il-warn{border-left:2px solid var(--warn)} .il-warn .ih{color:var(--warn)}
+  .il-info{border-left:2px solid var(--accent)} .il-info .ih{color:var(--accent)}
+  .il-ai{border-left:2px solid var(--info)} .il-ai .ih{color:var(--info)}
+  .coin{padding:11px;border-top:1px solid var(--border)}
+  .coin .box{display:flex;align-items:center;gap:8px;background:var(--bg-inset);border:1px solid var(--border);border-radius:9px;padding:8px 11px}
+  .coin .box .ic{font-size:16px;color:var(--info)}
+  .coin input{flex:1;background:none;border:none;outline:none;color:var(--t1);font:inherit;font-size:12.5px}
+  .coin .send{width:28px;height:28px;border-radius:7px;background:var(--info);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+<symbol id="i-markets" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+<symbol id="i-charts" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+<symbol id="i-options" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol>
+<symbol id="i-trade" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+<symbol id="i-folio" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
+<symbol id="i-research" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+<symbol id="i-risk" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+<symbol id="i-journal" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+<symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <aside class="rail">
+    <div class="logo"><svg viewBox="0 0 64 64"><path d="M20.5 20.5 L32 33.5 L43.5 20.5" stroke="#fff" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 33.5 L32 47" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/><circle cx="43.5" cy="20.5" r="3.4" fill="#fff"/></svg></div>
+    <div class="nav active" data-v="cockpit"><svg class="ic"><use href="#i-dash"/></svg><span>Cockpit</span></div>
+    <div class="nav" data-v="markets"><svg class="ic"><use href="#i-markets"/></svg><span>Markets</span></div>
+    <div class="nav" data-v="charts"><svg class="ic"><use href="#i-charts"/></svg><span>Charts</span></div>
+    <div class="nav" data-v="options"><svg class="ic"><use href="#i-options"/></svg><span>Options</span></div>
+    <div class="nav" data-v="trade"><svg class="ic"><use href="#i-trade"/></svg><span>Trade</span></div>
+    <div class="nav" data-v="folio"><svg class="ic"><use href="#i-folio"/></svg><span>Folio</span></div>
+    <div class="nav" data-v="strats"><svg class="ic"><use href="#i-code"/></svg><span>Strats</span></div>
+    <div class="nav" data-v="research"><svg class="ic"><use href="#i-research"/></svg><span>Research</span></div>
+    <div class="nav" data-v="reason"><svg class="ic"><use href="#i-spark"/></svg><span>Reason</span></div>
+    <div class="nav" data-v="scenario"><svg class="ic"><use href="#i-layers"/></svg><span>Scenario</span></div>
+    <div class="nav" data-v="graph"><svg class="ic"><use href="#i-options"/></svg><span>Graph</span></div>
+    <div class="nav" data-v="alpha"><svg class="ic"><use href="#i-target"/></svg><span>Alpha</span></div>
+    <div class="nav" data-v="memory"><svg class="ic"><use href="#i-clock"/></svg><span>Memory</span></div>
+    <div class="nav" data-v="risk"><svg class="ic"><use href="#i-risk"/></svg><span>Risk</span></div>
+    <div class="nav" data-v="journal"><svg class="ic"><use href="#i-journal"/></svg><span>Journal</span></div>
+    <div class="nav" data-v="alerts"><svg class="ic"><use href="#i-bell"/></svg><span>Alerts</span><span class="badge"></span></div>
+    <div class="sp"></div>
+    <div class="nav" data-v="setup"><svg class="ic"><use href="#i-settings"/></svg><span>Setup</span></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="pill"><span class="dot" style="background:var(--up)"></span>Zerodha · Live</span>
+      <label class="cmd"><svg class="ic"><use href="#i-spark"/></svg><input placeholder="Ask or command — “buy 50 NIFTY 24000 CE limit 130” or “review my risk”"><span class="kbd">Ctrl K</span></label>
+      <span class="pill"><span class="dot" style="background:var(--up)"></span>NSE open</span>
+      <span class="pill num">Day P&amp;L&nbsp;<b class="up">+₹12,480</b></span>
+      <span class="toggle">Sandbox <span class="sw"></span></span>
+      <div class="iconbtn"><svg class="ic"><use href="#i-bell"/></svg></div>
+      <div class="avatar">A</div>
+    </header>
+
+    <div class="content">
+      <div class="work">
+
+        <!-- COCKPIT -->
+        <section class="view on" data-view="cockpit">
+          <div class="h">Cockpit <small>· good afternoon, Amey — markets close in 2h 14m</small></div>
+          <div class="strip">
+            <div class="tile"><div class="lab">Available margin</div><div class="val num">₹4,82,300</div><div class="sub">Cash + collateral</div></div>
+            <div class="tile"><div class="lab">Margin used <span class="num" style="color:var(--warn)">24.6%</span></div><div class="val num">₹1,18,400</div><div class="sub">of ₹6,00,700</div></div>
+            <div class="tile"><div class="lab">Day P&amp;L</div><div class="val num up">+₹12,480</div><div class="sub up">+2.6% · realised ₹4,210</div></div>
+            <div class="tile"><div class="lab">Net exposure</div><div class="val num">₹6,10,000</div><div class="sub">long 78% · short 22%</div></div>
+            <div class="tile"><div class="lab">Open positions</div><div class="val num">5</div><div class="sub">3 equity · 2 F&amp;O</div></div>
+          </div>
+          <div class="pulse">
+            <div class="pcard"><div class="nm">NIFTY 50</div><div class="pr num">24,182.40</div><div class="ch up num">▲ 0.42%</div></div>
+            <div class="pcard"><div class="nm">BANK NIFTY</div><div class="pr num">51,418.05</div><div class="ch down num">▼ 0.18%</div></div>
+            <div class="pcard"><div class="nm">FIN NIFTY</div><div class="pr num">23,640.20</div><div class="ch up num">▲ 0.31%</div></div>
+            <div class="pcard"><div class="nm">SENSEX</div><div class="pr num">79,648.10</div><div class="ch up num">▲ 0.28%</div></div>
+            <div class="pcard"><div class="nm">INDIA VIX</div><div class="pr num">13.82</div><div class="ch down num">▼ 3.10%</div></div>
+          </div>
+          <div class="split">
+            <div class="panel">
+              <div class="ptitle">Open positions <span class="act"><span>Square off all</span><span>Convert</span><span>Export</span></span></div>
+              <table>
+                <thead><tr><th>Instrument</th><th>Qty</th><th>Avg</th><th>LTP</th><th>P&amp;L</th><th>Chg%</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="sym">RELIANCE</span> <span class="tag">CNC</span><div class="meta">NSE · equity</div></td><td class="num b">50</td><td class="num">2,940.00</td><td class="num">2,968.50</td><td class="num up">+1,425</td><td class="num up">+0.97%</td></tr>
+                  <tr><td><span class="sym">NIFTY 25JUN 24000 CE</span> <span class="tag">NRML</span><div class="meta">NFO · option</div></td><td class="num b">75</td><td class="num">118.00</td><td class="num">132.40</td><td class="num up">+1,080</td><td class="num up">+12.2%</td></tr>
+                  <tr><td><span class="sym">INFY</span> <span class="tag">CNC</span><div class="meta">NSE · equity</div></td><td class="num b">100</td><td class="num">1,612.00</td><td class="num">1,628.20</td><td class="num up">+1,620</td><td class="num up">+1.00%</td></tr>
+                  <tr><td><span class="sym">BANKNIFTY 25JUN FUT</span> <span class="tag">NRML</span><div class="meta">NFO · future</div></td><td class="num b">15</td><td class="num">51,560</td><td class="num">51,418</td><td class="num down">−2,130</td><td class="num down">−0.28%</td></tr>
+                  <tr><td><span class="sym">TATAMOTORS</span> <span class="tag">MIS</span><div class="meta">NSE · short</div></td><td class="num s">−200</td><td class="num">1,012.00</td><td class="num">1,004.30</td><td class="num up">+1,540</td><td class="num up">+0.76%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel wl">
+              <div class="ptitle">Watchlist <span class="act"><span><svg class="ic" style="width:14px;height:14px"><use href="#i-plus"/></svg></span></span></div>
+              <div class="wlrow"><div class="l"><span class="sym">HDFCBANK</span><span class="meta">NSE</span></div><div class="r"><div class="num">1,684.50</div><div class="num up" style="font-size:11px">+0.6%</div></div></div>
+              <div class="wlrow"><div class="l"><span class="sym">ICICIBANK</span><span class="meta">NSE</span></div><div class="r"><div class="num">1,242.10</div><div class="num down" style="font-size:11px">−0.3%</div></div></div>
+              <div class="wlrow"><div class="l"><span class="sym">SBIN</span><span class="meta">NSE</span></div><div class="r"><div class="num">842.75</div><div class="num up" style="font-size:11px">+1.2%</div></div></div>
+              <div class="wlrow"><div class="l"><span class="sym">TCS</span><span class="meta">NSE</span></div><div class="r"><div class="num">3,910.00</div><div class="num up" style="font-size:11px">+0.4%</div></div></div>
+              <div class="wlrow"><div class="l"><span class="sym">ADANIENT</span><span class="meta">NSE</span></div><div class="r"><div class="num">2,418.30</div><div class="num down" style="font-size:11px">−1.1%</div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MARKETS -->
+        <section class="view" data-view="markets">
+          <div class="h">Markets <small>· depth, heatmap & movers</small></div>
+          <div class="grid2">
+            <div class="panel"><div class="ptitle">Market depth · RELIANCE <span class="act num">2,968.50</span></div>
+              <div class="depth">
+                <div class="dcol bid">
+                  <div class="drow"><span class="bar" style="width:80%"></span><span class="num up">2,968.45</span><span class="num">1,240</span></div>
+                  <div class="drow"><span class="bar" style="width:55%"></span><span class="num up">2,968.40</span><span class="num">860</span></div>
+                  <div class="drow"><span class="bar" style="width:38%"></span><span class="num up">2,968.35</span><span class="num">610</span></div>
+                  <div class="drow"><span class="bar" style="width:62%"></span><span class="num up">2,968.30</span><span class="num">980</span></div>
+                  <div class="drow"><span class="bar" style="width:28%"></span><span class="num up">2,968.25</span><span class="num">440</span></div>
+                </div>
+                <div class="dcol ask">
+                  <div class="drow"><span class="bar" style="width:70%"></span><span class="num">1,090</span><span class="num down">2,968.55</span></div>
+                  <div class="drow"><span class="bar" style="width:44%"></span><span class="num">700</span><span class="num down">2,968.60</span></div>
+                  <div class="drow"><span class="bar" style="width:90%"></span><span class="num">1,420</span><span class="num down">2,968.65</span></div>
+                  <div class="drow"><span class="bar" style="width:33%"></span><span class="num">520</span><span class="num down">2,968.70</span></div>
+                  <div class="drow"><span class="bar" style="width:50%"></span><span class="num">800</span><span class="num down">2,968.75</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel"><div class="ptitle">Sector heatmap</div>
+              <div class="heat" id="heat"></div>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="panel"><div class="ptitle">Top gainers</div><table><tbody id="gain"></tbody></table></div>
+            <div class="panel"><div class="ptitle">Top losers</div><table><tbody id="lose"></tbody></table></div>
+          </div>
+        </section>
+
+        <!-- CHARTS -->
+        <section class="view" data-view="charts">
+          <div class="h">Charts
+            <span class="seg" style="margin-left:8px"><button>1m</button><button>5m</button><button class="on">15m</button><button>1h</button><button>1D</button></span>
+            <span class="seg"><button class="on">RELIANCE</button></span>
+            <span class="chips"><span class="chip on">EMA 20/50</span><span class="chip">RSI</span><span class="chip">VWAP</span><span class="chip">+ indicator</span></span>
+          </div>
+          <div class="split">
+            <div class="panel"><div class="ptitle">RELIANCE · NSE <span class="act"><span class="num up">2,968.50 +0.97%</span></span></div>
+              <svg id="chart" viewBox="0 0 820 360" style="width:100%;display:block"></svg>
+            </div>
+            <div class="panel ticket-host"></div>
+          </div>
+        </section>
+
+        <!-- OPTIONS -->
+        <section class="view" data-view="options">
+          <div class="h">Options Lab
+            <span class="seg" style="margin-left:8px"><button class="on">NIFTY</button><button>BANKNIFTY</button><button>FINNIFTY</button></span>
+            <span class="seg"><button class="on">25 Jun</button><button>02 Jul</button></span>
+            <small>spot <b class="num up" style="color:var(--up)">24,182</b> · ATM 24,200</small>
+          </div>
+          <div class="split">
+            <div class="panel"><div class="ptitle">Option chain <span class="act"><span>Greeks</span><span>OI</span><span>IV</span></span></div>
+              <table class="chain"><thead>
+                <tr><th colspan="3" style="color:var(--up)">CALLS</th><th>STRIKE</th><th colspan="3" style="color:var(--down)">PUTS</th></tr>
+                <tr><th>OI</th><th>IV</th><th>LTP</th><th></th><th>LTP</th><th>IV</th><th>OI</th></tr>
+              </thead><tbody id="chain"></tbody></table>
+            </div>
+            <div class="panel"><div class="ptitle">Strategy builder <span class="act">bull call spread</span></div>
+              <svg id="payoff" viewBox="0 0 320 180" style="width:100%;display:block;padding:8px 6px 0"></svg>
+              <div style="padding:0 14px 12px">
+                <div class="mrow"><span>Net debit</span><b>₹86</b></div>
+                <div class="mrow"><span>Max profit</span><b class="up">₹114</b></div>
+                <div class="mrow"><span>Max loss</span><b class="down">₹86</b></div>
+                <div class="mrow"><span>Breakeven</span><b>24,286</b></div>
+                <div class="grid3" style="margin-top:10px;gap:8px">
+                  <div class="tile" style="padding:8px"><div class="lab">Delta</div><div class="val num" style="font-size:16px">+0.22</div></div>
+                  <div class="tile" style="padding:8px"><div class="lab">Theta</div><div class="val num" style="font-size:16px">−4.1</div></div>
+                  <div class="tile" style="padding:8px"><div class="lab">Vega</div><div class="val num" style="font-size:16px">+6.8</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TRADE -->
+        <section class="view" data-view="trade">
+          <div class="h">Trade <small>· order ticket & books</small></div>
+          <div class="split">
+            <div class="panel"><div class="ptitle">Order book</div>
+              <table><thead><tr><th>Time</th><th>Instrument</th><th>Side</th><th>Qty</th><th>Price</th><th>Status</th></tr></thead><tbody>
+                <tr><td class="num">13:42:10</td><td class="sym">RELIANCE</td><td class="b">BUY</td><td class="num">50</td><td class="num">2,940.00</td><td><span class="tag" style="color:var(--up)">complete</span></td></tr>
+                <tr><td class="num">13:51:55</td><td class="sym">NIFTY 24000 CE</td><td class="b">BUY</td><td class="num">75</td><td class="num">118.00</td><td><span class="tag" style="color:var(--up)">complete</span></td></tr>
+                <tr><td class="num">14:05:32</td><td class="sym">TATAMOTORS</td><td class="s">SELL</td><td class="num">200</td><td class="num">1,012.00</td><td><span class="tag" style="color:var(--up)">complete</span></td></tr>
+                <tr><td class="num">14:18:09</td><td class="sym">INFY</td><td class="s">SELL</td><td class="num">50</td><td class="num">1,635.00</td><td><span class="tag" style="color:var(--warn)">open</span></td></tr>
+              </tbody></table>
+            </div>
+            <div class="panel ticket-host2"></div>
+          </div>
+        </section>
+
+        <!-- FOLIO -->
+        <section class="view" data-view="folio">
+          <div class="h">Portfolio <small>· holdings, P&L & exposure</small></div>
+          <div class="strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="tile"><div class="lab">Invested</div><div class="val num">₹5,84,200</div></div>
+            <div class="tile"><div class="lab">Current value</div><div class="val num">₹6,18,900</div></div>
+            <div class="tile"><div class="lab">Overall P&amp;L</div><div class="val num up">+₹34,700</div><div class="sub up">+5.9%</div></div>
+            <div class="tile"><div class="lab">Today's P&amp;L</div><div class="val num up">+₹12,480</div><div class="sub up">+2.1%</div></div>
+          </div>
+          <div class="split">
+            <div class="panel"><div class="ptitle">Holdings</div>
+              <table><thead><tr><th>Symbol</th><th>Qty</th><th>Avg</th><th>LTP</th><th>P&amp;L</th><th>Day</th></tr></thead><tbody>
+                <tr><td class="sym">RELIANCE</td><td class="num">50</td><td class="num">2,810</td><td class="num">2,968.50</td><td class="num up">+7,925</td><td class="num up">+0.97%</td></tr>
+                <tr><td class="sym">INFY</td><td class="num">100</td><td class="num">1,540</td><td class="num">1,628.20</td><td class="num up">+8,820</td><td class="num up">+1.00%</td></tr>
+                <tr><td class="sym">HDFCBANK</td><td class="num">60</td><td class="num">1,610</td><td class="num">1,684.50</td><td class="num up">+4,470</td><td class="num up">+0.62%</td></tr>
+                <tr><td class="sym">TCS</td><td class="num">25</td><td class="num">3,720</td><td class="num">3,910.00</td><td class="num up">+4,750</td><td class="num up">+0.41%</td></tr>
+                <tr><td class="sym">SBIN</td><td class="num">120</td><td class="num">790</td><td class="num">842.75</td><td class="num up">+6,330</td><td class="num up">+1.20%</td></tr>
+              </tbody></table>
+            </div>
+            <div class="panel"><div class="ptitle">Exposure by sector</div><div style="padding:14px" id="expo"></div></div>
+          </div>
+        </section>
+
+        <!-- RISK -->
+        <section class="view" data-view="risk">
+          <div class="h">Risk <small>· limits, margin & kill-switch</small></div>
+          <div class="split">
+            <div class="panel"><div class="ptitle">Live risk meters</div>
+              <div style="height:10px"></div>
+              <div class="meter"><div class="top"><span>Margin utilisation</span><span class="num">24.6% of 80% cap</span></div><div class="bar"><div class="fill" style="width:24.6%;background:var(--up)"></div><div class="lim" style="left:80%"></div></div></div>
+              <div class="meter"><div class="top"><span>Daily loss vs limit</span><span class="num up">+₹12,480 / −₹15,000</span></div><div class="bar"><div class="fill" style="width:12%;background:var(--up)"></div><div class="lim" style="left:100%"></div></div></div>
+              <div class="meter"><div class="top"><span>Net exposure vs cap</span><span class="num" style="color:var(--warn)">₹6.1L of ₹7.5L</span></div><div class="bar"><div class="fill" style="width:81%;background:var(--warn)"></div><div class="lim" style="left:100%"></div></div></div>
+              <div class="meter"><div class="top"><span>Single-name concentration</span><span class="num down">BANKNIFTY 41%</span></div><div class="bar"><div class="fill" style="width:41%;background:var(--down)"></div><div class="lim" style="left:35%"></div></div></div>
+              <button class="killbtn"><svg class="ic"><use href="#i-alert"/></svg> Kill-switch — square off everything &amp; halt</button>
+            </div>
+            <div class="panel"><div class="ptitle">Risk rules <span class="act">enforced by the app</span></div>
+              <div class="rule"><span>Max daily loss</span><span class="num">₹15,000</span></div>
+              <div class="rule"><span>Max position size</span><span class="num">₹2,00,000</span></div>
+              <div class="rule"><span>Max open positions</span><span class="num">8</span></div>
+              <div class="rule"><span>Instrument whitelist</span><span class="num">NSE · NFO</span></div>
+              <div class="rule"><span>Auto square-off</span><span class="num">15:15 IST</span></div>
+              <div class="rule"><span>New-order block on breach</span><span class="num up">on</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- REASONING -->
+        <section class="view" data-view="reason">
+          <div class="h">Reasoning engine <small>· an event ripples through the causal graph</small></div>
+          <div class="panel"><div class="ptitle">Inject an event</div><div class="evbtns" id="ev"></div></div>
+          <div id="rout"></div>
+        </section>
+
+        <!-- SCENARIOS -->
+        <section class="view" data-view="scenario">
+          <div class="h">Scenarios <small>· counterfactual — alternate futures</small></div>
+          <div class="grid2" id="scen"></div>
+        </section>
+
+        <!-- KNOWLEDGE GRAPH -->
+        <section class="view" data-view="graph">
+          <div class="h">Knowledge graph <small>· entities & causal relationships</small></div>
+          <div id="graphout"></div>
+        </section>
+
+        <!-- ALPHA -->
+        <section class="view" data-view="alpha">
+          <div class="h">Alpha discovery <small>· mispriced relationships across scenarios</small></div>
+          <div id="alphaout"></div>
+        </section>
+
+        <!-- MEMORY -->
+        <section class="view" data-view="memory">
+          <div class="h">Market memory <small>· calibration & the hypothesis lab</small></div>
+          <div id="memout"></div>
+        </section>
+
+        <!-- STUBS -->
+        <section class="view" data-view="strats"><div class="h">Strategies</div><div class="panel"><div class="stub"><svg class="ic"><use href="#i-code"/></svg>Python host · Flow no-code builder · webhooks · live monitor<br><span style="font-size:12px;color:var(--t3)">designed next iteration</span></div></div></section>
+        <section class="view" data-view="research"><div class="h">Research</div><div class="panel"><div class="stub"><svg class="ic"><use href="#i-research"/></svg>Backtests with costs · scanners · idea generation<br><span style="font-size:12px;color:var(--t3)">designed next iteration</span></div></div></section>
+        <section class="view" data-view="journal"><div class="h">Journal</div><div class="panel"><div class="stub"><svg class="ic"><use href="#i-journal"/></svg>Auto trade journal · equity curve · AI performance review<br><span style="font-size:12px;color:var(--t3)">designed next iteration</span></div></div></section>
+        <section class="view" data-view="alerts"><div class="h">Alerts</div><div class="panel"><div class="stub"><svg class="ic"><use href="#i-bell"/></svg>Price · OI · news · AI signals → Telegram<br><span style="font-size:12px;color:var(--t3)">designed next iteration</span></div></div></section>
+        <section class="view" data-view="setup"><div class="h">Setup</div><div class="panel"><div class="stub"><svg class="ic"><use href="#i-settings"/></svg>Broker connection · API keys · 2FA · theme · copilot config<br><span style="font-size:12px;color:var(--t3)">designed next iteration</span></div></div></section>
+
+      </div>
+
+      <aside class="copilot">
+        <div class="cohead">
+          <div class="t"><span class="ai"><svg class="ic"><use href="#i-spark"/></svg></span> AI Copilot</div>
+          <div class="tiers"><button class="on">Advisory</button><button>Co-pilot</button><button>Bounded-auto</button></div>
+        </div>
+        <div class="feed" id="feed"></div>
+        <div class="coin">
+          <div class="box"><svg class="ic"><use href="#i-spark"/></svg><input placeholder="Ask or command…"><div class="send"><svg class="ic"><use href="#i-up"/></svg></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* context-aware copilot insights per module */
+const INS={
+  cockpit:[
+    ['warn','i-alert','Risk · position','<b>BANKNIFTY</b> lost the 51,500 support. Your long FUT (15) is <b class="down">−₹2,130</b>. Trail stop to <b>51,250</b>?',['Set SL 51,250','Dismiss']],
+    ['info','i-target','Opportunity','<b>INFY</b> up 1.0% into resistance 1,635 on rising volume. You\'re <b class="up">+₹1,620</b>. Book half (50)?',['Prepare sell 50','Chart']],
+    ['ai','i-layers','Proposed strategy','Weekly bullish on NIFTY → defined-risk <b>bull call spread</b> 24200/24400. Debit <b class="num">₹86</b>, max <b class="num up">₹114</b>, BE <b class="num">24,286</b>.',['Review payoff','Adjust']]],
+  markets:[
+    ['info','i-target','Breadth','Advance/decline <b>34/16</b> — broad strength led by <b>PSU banks</b> (+1.4%). Metals lagging (−0.6%).',['Scan PSU banks']],
+    ['warn','i-alert','Unusual OI','<b>NIFTY 24300 CE</b> added <b>+18%</b> OI with price up — call writing into resistance.',['Open chain']]],
+  charts:[
+    ['ai','i-layers','Pattern','<b>RELIANCE 15m</b> printed a higher-low; reclaiming VWAP 2,962. Momentum turning up.',['Mark levels']],
+    ['info','i-target','Level','Resistance overhead at <b>2,978</b> (yesterday high). A clean break targets 2,995.',['Set alert 2,978']]],
+  options:[
+    ['ai','i-layers','Strategist','For a range-bound view into expiry, an <b>iron condor</b> 23900P/24500C collects <b class="num up">₹64</b> with BEs 23,836–24,564.',['Build condor','Compare']],
+    ['warn','i-alert','Greeks','Your book theta is <b class="down">−₹420/day</b> — time decay is working against the long 24000 CE.',['Hedge theta']]],
+  trade:[
+    ['warn','i-alert','Pre-trade check','Your pending <b>INFY sell 50 @ 1,635</b> needs ₹0 margin (delivery). It books <b class="up">+₹1,150</b> on the lot.',['Confirm','Edit']],
+    ['info','i-target','Sizing','At ₹2L position cap, max <b>67</b> RELIANCE on MIS (5x). You\'re using 50.',['Size to cap']]],
+  folio:[
+    ['warn','i-alert','Concentration','Banking is <b>41%</b> of exposure. A 1% adverse move ≈ <b class="down">−₹2,500</b>. Consider trimming.',['Rebalance']],
+    ['info','i-target','Tax','Booking INFY now is <b>LTCG</b> (held 14m) — ₹8,820 gain taxed at 12.5%.',['Show report']]],
+  risk:[
+    ['warn','i-alert','Limit watch','Net exposure at <b>81%</b> of cap and concentration <b>past</b> its 35% threshold. New banking longs blocked.',['Review']],
+    ['ai','i-layers','Suggestion','A <b>BANKNIFTY 51000 PE</b> (1 lot, ₹118) hedges the futures drawdown for ~₹3,540.',['Add hedge']]],
+  reason:[
+    ['ai','i-layers','Reasoning','I traced this shock through the causal graph — every arrow has a sign, strength, confidence and lag. The non-obvious one: crude up → weaker rupee → <b>IT exporters benefit</b>.',['Explain TCS chain']],
+    ['info','i-target','Discovery','<b>Oil India</b> is a real beneficiary (+0.55) but only <b>35%</b> covered — a structural mispricing, not a tip.',['Add to watchlist']]],
+  scenario:[
+    ['ai','i-layers','Counterfactual','Flip any driver and I re-propagate the whole graph. <b>Crude → $40</b> mirrors the shock: OMCs and aviation become the beneficiaries.',['Run crude $40']],
+    ['warn','i-alert','Fragility','Most chains hinge on the <b>RBI reaction function</b> (CPI→repo). If the RBI holds, the rate-channel effects don\'t fire.',['Stress this edge']]]
+};
+const def=[['ai','i-spark','Copilot','I watch this module live and surface what matters — risk, opportunities, and ready-to-place actions. Ask me anything.',['Examples']]];
+
+function paintFeed(v){
+  const list=INS[v]||def;
+  $('#feed').innerHTML=list.map(([k,ic,h,p,btns])=>`
+    <div class="ins il-${k}">
+      <div class="ih"><svg class="ic"><use href="#i-${ic.replace('i-','')}"/></svg> ${h}</div>
+      <p>${p}</p>
+      <div class="row">${btns.map((b,i)=>`<button class="${i===0?'pri':''}">${b}</button>`).join('')}</div>
+    </div>`).join('') + `
+    <div class="ins"><div class="ih" style="color:var(--t2)"><svg class="ic"><use href="#i-msg"/></svg> You asked</div>
+      <p style="color:var(--t1)">“What's my exposure to banking?”</p>
+      <p style="margin-top:6px">Banking is <b>41%</b> of net exposure — BANKNIFTY FUT + HDFCBANK. Concentrated; 1% move ≈ <b class="down">−₹2,500</b>.</p></div>`;
+}
+
+function show(v){
+  $$('.view').forEach(s=>s.classList.toggle('on',s.dataset.view===v));
+  $$('.rail .nav').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
+  if(v==='reason') renderReason(window._ev||'crude');
+  if(v==='scenario') renderScenarios();
+  if(v==='graph') renderGraph();
+  if(v==='alpha') renderAlpha();
+  if(v==='memory') renderMemory();
+  paintFeed(v);
+}
+$$('.rail .nav').forEach(n=>n.addEventListener('click',()=>show(n.dataset.v)));
+$$('.tiers button').forEach(b=>b.addEventListener('click',()=>{$$('.tiers button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+
+/* order ticket (reused in charts + trade) */
+function ticket(){return `
+  <div class="ptitle">Order ticket</div>
+  <div class="ticket">
+    <div class="bs"><button class="buy on">Buy</button><button class="sell">Sell</button></div>
+    <div class="fld"><label>Instrument</label><input class="inp" value="RELIANCE" style="font-family:var(--sans)"></div>
+    <div class="chips"><span class="chip on">MIS</span><span class="chip">CNC</span><span class="chip">NRML</span></div>
+    <div class="chips"><span class="chip">MKT</span><span class="chip on">LMT</span><span class="chip">SL</span><span class="chip">SL-M</span></div>
+    <div class="grid2" style="gap:8px"><div class="fld"><label>Qty</label><input class="inp" value="50"></div><div class="fld"><label>Price</label><input class="inp" value="2968.50"></div></div>
+    <div style="border-top:1px solid var(--border);padding-top:8px">
+      <div class="mrow"><span>Margin required</span><b>₹29,685</b></div>
+      <div class="mrow"><span>Available</span><b>₹4,82,300</b></div>
+      <div class="mrow"><span>Charges (est.)</span><b>₹23.60</b></div>
+    </div>
+    <button class="place">Place order · Live</button>
+    <div style="font-size:11px;color:var(--t3);text-align:center">Flip the Sandbox switch to paper-trade this first.</div>
+  </div>`;}
+document.querySelector('.ticket-host').innerHTML=ticket();
+document.querySelector('.ticket-host2').innerHTML=ticket();
+$$('.bs button').forEach(b=>b.addEventListener('click',()=>{const p=b.parentElement;p.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+$$('.chips').forEach(c=>c.addEventListener('click',e=>{if(e.target.classList.contains('chip')){c.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));e.target.classList.add('on');}}));
+
+/* markets: heatmap + movers */
+const sectors=[['Nifty Bank',-0.18],['Nifty IT',0.62],['FMCG',0.24],['Auto',0.81],['Pharma',-0.34],['Metal',-0.61],['Energy',0.45],['PSU Bank',1.42],['Realty',0.12],['Media',-0.92],['Infra',0.33],['Fin Serv',0.05]];
+function hcol(c){const a=Math.min(Math.abs(c)/1.5,1);const base=c>=0?'22,199,132':'234,57,67';return `background:rgba(${base},${0.10+a*0.22});color:${c>=0?'#7ff0c4':'#ffb4b4'}`;}
+$('#heat').innerHTML=sectors.map(([n,c])=>`<div class="hcell" style="${hcol(c)}"><span class="n">${n}</span><span class="c">${c>=0?'+':''}${c.toFixed(2)}%</span></div>`).join('');
+const gainers=[['ADANIPORTS',3.4],['BPCL',2.9],['SBIN',1.2],['TATASTEEL',1.1],['ONGC',0.9]];
+const losers=[['BAJFINANCE',-2.6],['ASIANPAINT',-1.8],['TITAN',-1.4],['NESTLEIND',-1.1],['ADANIENT',-1.1]];
+const mrow=(n,c)=>`<tr><td class="sym">${n}</td><td class="num ${c>=0?'up':'down'}">${c>=0?'+':''}${c.toFixed(1)}%</td></tr>`;
+$('#gain').innerHTML=gainers.map(([n,c])=>mrow(n,c)).join('');
+$('#lose').innerHTML=losers.map(([n,c])=>mrow(n,c)).join('');
+
+/* options chain */
+const strikes=[23900,24000,24100,24200,24300,24400,24500];
+const atm=24200;
+$('#chain').innerHTML=strikes.map(k=>{
+  const itmC=k<atm, isAtm=k===atm;
+  const ce=(Math.max(5,(atm-k)/2+90)).toFixed(2), pe=(Math.max(5,(k-atm)/2+80)).toFixed(2);
+  const oiC=(Math.random()*8+2).toFixed(1), oiP=(Math.random()*8+2).toFixed(1);
+  return `<tr class="${isAtm?'atm':''}">
+    <td class="num ${itmC?'itm':''}">${oiC}L</td><td class="num">12.${(k%90).toString().padStart(2,'0').slice(0,1)}</td><td class="num up">${ce}</td>
+    <td class="strike">${k.toLocaleString('en-IN')}</td>
+    <td class="num down">${pe}</td><td class="num">13.${(k%70).toString().padStart(2,'0').slice(0,1)}</td><td class="num ${!itmC&&!isAtm?'itm':''}">${oiP}L</td></tr>`;
+}).join('');
+
+/* candlestick chart */
+(function(){const svg=$('#chart');if(!svg)return;const W=820,H=360,n=46,pad=8;let p=2950,cs=[];
+  let seed=7;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  for(let i=0;i<n;i++){const o=p,c=p+(rnd()-0.46)*8;const hi=Math.max(o,c)+rnd()*4,lo=Math.min(o,c)-rnd()*4;cs.push([o,hi,lo,c]);p=c;}
+  const max=Math.max(...cs.map(c=>c[1])),min=Math.min(...cs.map(c=>c[2]));const cw=(W-pad*2)/n;
+  const y=v=>pad+ (H-70) - ((v-min)/(max-min))*(H-90);
+  let html='';cs.forEach((c,i)=>{const x=pad+i*cw+cw/2;const up=c[3]>=c[0];const col=up?'#16C784':'#EA3943';
+    html+=`<line x1="${x}" y1="${y(c[1])}" x2="${x}" y2="${y(c[2])}" stroke="${col}" stroke-width="1"/>`;
+    html+=`<rect x="${x-cw*0.3}" y="${y(Math.max(c[0],c[3]))}" width="${cw*0.6}" height="${Math.max(1,Math.abs(y(c[0])-y(c[3])))}" fill="${col}"/>`;
+    html+=`<rect x="${pad+i*cw+1}" y="${H-50+ (1-rnd())*0}" width="${cw-2}" height="${10+rnd()*30}" fill="${up?'rgba(22,199,132,.35)':'rgba(234,57,67,.35)'}" transform="translate(0,${-(10+rnd()*30)})"/>`;});
+  const ry=y(2978);
+  html+=`<line x1="${pad}" y1="${ry}" x2="${W-pad}" y2="${ry}" stroke="#7C5CFF" stroke-width="1" stroke-dasharray="4 4"/>`;
+  html+=`<rect x="${W-90}" y="${ry-9}" width="84" height="16" rx="3" fill="rgba(124,92,255,.18)"/><text x="${W-48}" y="${ry+3}" fill="#b3a4ff" font-size="10" text-anchor="middle" font-family="monospace">AI · R 2,978</text>`;
+  svg.innerHTML=html;})();
+
+/* payoff diagram */
+(function(){const svg=$('#payoff');if(!svg)return;const W=320,H=180;const z=H-40;
+  const pts=[[10,z+30],[120,z+30],[230,z-50],[310,z-50]];
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');
+  svg.innerHTML=`<line x1="0" y1="${z}" x2="${W}" y2="${z}" stroke="#2A3340"/>
+    <path d="${line}" fill="none" stroke="#16C784" stroke-width="2"/>
+    <path d="M10 ${z+30} L120 ${z+30} L175 ${z}" fill="none" stroke="#EA3943" stroke-width="2"/>
+    <circle cx="175" cy="${z}" r="3" fill="#9AA4B2"/><text x="175" y="${z+16}" fill="#9AA4B2" font-size="9" text-anchor="middle" font-family="monospace">BE 24,286</text>
+    <text x="14" y="${z-50}" fill="#5B6472" font-size="9" font-family="monospace">+₹114</text>
+    <text x="14" y="${z+44}" fill="#5B6472" font-size="9" font-family="monospace">−₹86</text>`;})();
+
+/* portfolio exposure bars */
+(function(){const el=$('#expo');if(!el)return;const data=[['Banking & Fin',41,'#3B82F6'],['IT',23,'#7C5CFF'],['Energy',16,'#16C784'],['Auto',11,'#F0A020'],['Others',9,'#9AA4B2']];
+  el.innerHTML=data.map(([n,p,c])=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${n}</span><span class="num">${p}%</span></div><div style="height:8px;border-radius:6px;background:var(--bg-inset)"><div style="height:100%;width:${p}%;border-radius:6px;background:${c}"></div></div></div>`).join('');})();
+
+/* ===== reasoning engine (mirror of intelligence/propagate.py) ===== */
+const GNODES={CRUDE:['Brent crude','commodity',.95],INR:['USD/INR (rupee strength)','macro',.85],CPI:['CPI inflation','macro',.9],REPO:['RBI repo rate','macro',.9],TRANSPORT:['Freight / logistics cost','macro',.4],
+ OMC:['Oil marketing','sector',.6],UPSTREAM:['Upstream oil & gas','sector',.5],AUTO:['Automobiles','sector',.85],PAINTS:['Paints','sector',.55],TYRE:['Tyres','sector',.4],AVIATION:['Aviation','sector',.6],BANKS:['Banks','sector',.9],IT:['IT services','sector',.85],PHARMA:['Pharma','sector',.6],FMCG:['FMCG','sector',.75],REALTY:['Realty','sector',.55],
+ RELIANCE:['Reliance Industries','company',.95],ONGC:['ONGC','company',.6],OIL:['Oil India','company',.35],BPCL:['BPCL','company',.6],IOC:['IOC','company',.5],HPCL:['HPCL','company',.5],ASIANPAINT:['Asian Paints','company',.85],BERGEPAINT:['Berger Paints','company',.55],MRF:['MRF','company',.5],APOLLOTYRE:['Apollo Tyres','company',.4],INDIGO:['IndiGo','company',.75],MARUTI:['Maruti Suzuki','company',.85],TATAMOTORS:['Tata Motors','company',.85],MM:['M&M','company',.7],HEROMOTOCO:['Hero MotoCorp','company',.6],HDFCBANK:['HDFC Bank','company',.95],ICICIBANK:['ICICI Bank','company',.9],SBIN:['State Bank of India','company',.85],TCS:['TCS','company',.9],INFY:['Infosys','company',.9],HCLTECH:['HCLTech','company',.7],SUNPHARMA:['Sun Pharma','company',.7],HINDUNILVR:['Hindustan Unilever','company',.85],ITC:['ITC','company',.8],NESTLEIND:['Nestle India','company',.75],DLF:['DLF','company',.6]};
+const GEDGES=[['CRUDE','TRANSPORT',1,.7,.85,15,'fuel is a major freight input'],['CRUDE','CPI',1,.45,.8,30,'fuel + freight feed inflation'],['TRANSPORT','CPI',1,.4,.75,30,'higher freight lifts prices'],['CRUDE','INR',-1,.5,.7,20,'import bill widens CAD, weakens rupee'],['CPI','REPO',1,.6,.7,45,'RBI hikes repo to fight inflation'],['REPO','INR',1,.3,.55,30,'higher rates support rupee'],['REPO','AUTO',-1,.5,.65,60,'costlier financing cools demand'],['REPO','REALTY',-1,.6,.7,60,'home-loan rates hit affordability'],['REPO','BANKS',1,.4,.55,30,'NIM expands as rates rise'],['CRUDE','UPSTREAM',1,.8,.85,5,'realisations rise for explorers'],['CRUDE','OMC',-1,.65,.7,10,'marketing margins squeezed'],['CRUDE','PAINTS',-1,.6,.7,20,'crude derivatives ~35% of cost'],['CRUDE','TYRE',-1,.45,.6,20,'rubber + carbon black crude-linked'],['CRUDE','AVIATION',-1,.8,.8,10,'ATF ~40% of airline cost'],['CRUDE','AUTO',-1,.25,.55,25,'input cost + weaker demand'],['CRUDE','FMCG',-1,.2,.5,30,'crude-linked packaging + transport'],['CRUDE','RELIANCE',1,.25,.45,10,'refining GRMs can improve'],['CPI','FMCG',-1,.3,.55,30,'inflation crimps rural volumes'],['INR','IT',-1,.6,.7,15,'weaker rupee lifts USD exporters'],['INR','PHARMA',-1,.4,.6,20,'weaker rupee aids exports'],['INR','FMCG',1,.15,.5,20,'weaker rupee raises input cost'],['UPSTREAM','ONGC',1,.9,.9,5,'upstream'],['UPSTREAM','OIL',1,.85,.85,5,'upstream'],['OMC','BPCL',1,.9,.9,5,'OMC'],['OMC','IOC',1,.85,.85,5,'OMC'],['OMC','HPCL',1,.85,.85,5,'OMC'],['PAINTS','ASIANPAINT',1,.9,.9,5,'paints'],['PAINTS','BERGEPAINT',1,.85,.85,5,'paints'],['TYRE','MRF',1,.85,.85,5,'tyre'],['TYRE','APOLLOTYRE',1,.85,.85,5,'tyre'],['AVIATION','INDIGO',1,.95,.9,5,'carrier'],['AUTO','MARUTI',1,.9,.85,5,'cars'],['AUTO','TATAMOTORS',1,.8,.8,5,'auto'],['AUTO','MM',1,.8,.8,5,'SUV+tractor'],['AUTO','HEROMOTOCO',1,.7,.8,5,'2W'],['BANKS','HDFCBANK',1,.9,.9,5,'bank'],['BANKS','ICICIBANK',1,.9,.9,5,'bank'],['BANKS','SBIN',1,.85,.85,5,'bank'],['IT','TCS',1,.9,.9,5,'IT'],['IT','INFY',1,.9,.9,5,'IT'],['IT','HCLTECH',1,.85,.85,5,'IT'],['PHARMA','SUNPHARMA',1,.85,.85,5,'pharma'],['FMCG','HINDUNILVR',1,.85,.85,5,'FMCG'],['FMCG','ITC',1,.55,.75,5,'FMCG'],['FMCG','NESTLEIND',1,.8,.85,5,'FMCG'],['REALTY','DLF',1,.85,.85,5,'realty']];
+const GSCEN={crude:['Brent crude spikes +20%',{CRUDE:1}],repo:['RBI hikes repo +50bps',{REPO:1}],inr:['Rupee weakens ~5%',{INR:-1}],crudedrop:['What if crude falls to $40?',{CRUDE:-1}],repocut:['What if RBI cuts 25bps?',{REPO:-1}]};
+const GADJ={};GEDGES.forEach(e=>{(GADJ[e[0]]=GADJ[e[0]]||[]).push(e);});
+function gpropagate(seeds){const acc={},DEC=.9,EPS=.02,HOP=5;
+  function visit(node,mag,conf,lag,chain){(GADJ[node]||[]).forEach(([,dst,sign,st,ec,el,why])=>{if(chain.some(s=>s[0]===dst))return;const m2=mag*sign*st*DEC;if(Math.abs(m2)<EPS)return;const c2=conf*ec,l2=lag+el,nc=chain.concat([[dst,sign,why,m2]]);const r=acc[dst]=acc[dst]||{impact:0,best:0,conf:0,horizon:0,chain:[]};r.impact+=m2;if(Math.abs(m2)>Math.abs(r.best)){r.best=m2;r.conf=c2;r.horizon=l2;r.chain=nc;}if(nc.length<HOP)visit(dst,m2,c2,l2,nc);});}
+  for(const s in seeds)visit(s,seeds[s],.9,0,[[s,0,'event',seeds[s]]]);return acc;}
+const gnm=n=>(GNODES[n]||[n])[0];
+function gchain(ch){return ch.map(([n,sign,why])=>why==='event'?gnm(n):` <b>→</b> ${gnm(n)}`).join('');}
+function companies(acc){return Object.entries(acc).filter(([n])=>GNODES[n]&&GNODES[n][1]==='company');}
+function irow(n,r,maxA){const pos=r.impact>0,w=Math.min(Math.abs(r.impact)/maxA*50,50);
+  return `<div class="irow"><span class="nm">${gnm(n)}</span><div class="ibar"><div class="mid"></div><div class="f ${pos?'pos':'neg'}" style="width:${w}%"></div></div><span class="ival ${pos?'up':'down'}">${pos?'+':''}${r.impact.toFixed(2)}</span><span class="icv">${Math.round(r.conf*100)}%</span></div><div class="chainline">${gchain(r.chain)} <b>· ~${r.horizon}d</b></div>`;}
+function renderReasonJS(id){window._ev=id;const [label,seeds]=GSCEN[id];const acc=gpropagate(seeds);
+  const co=companies(acc),maxA=Math.max(...co.map(([,r])=>Math.abs(r.impact)),.1);
+  const win=co.filter(([,r])=>r.impact>0).sort((a,b)=>b[1].impact-a[1].impact);
+  const los=co.filter(([,r])=>r.impact<0).sort((a,b)=>a[1].impact-b[1].impact);
+  const blind=co.slice().sort((a,b)=>Math.abs(b[1].impact)*(1-GNODES[b[0]][2])-Math.abs(a[1].impact)*(1-GNODES[a[0]][2]));
+  const why=acc.INR?`weaker rupee, ${(acc.CPI?'higher inflation → RBI repo '+ (acc.REPO?'+'+acc.REPO.best.toFixed(2):''):'')}`:'',
+        topAssum=GEDGES.filter(e=>seeds[e[0]]).sort((a,b)=>b[3]*b[4]-a[3]*a[4])[0];
+  $('#ev').innerHTML=['crude','repo','inr'].map(k=>`<button class="evbtn ${k===id?'on':''}" data-ev="${k}">${GSCEN[k][0]}</button>`).join('');
+  $$('#ev .evbtn').forEach(b=>b.onclick=()=>{renderReason(b.dataset.ev);paintFeed('reason');});
+  $('#rout').innerHTML=`
+    <div class="panel" style="margin-top:14px"><div class="ptitle">What the engine concludes</div>
+      <div class="qa">
+        <span class="q">What happened</span><span class="a">${label}.</span>
+        <span class="q">Why it matters</span><span class="a">${gnm(Object.keys(seeds)[0])} ripples through ${Object.keys(acc).length} linked entities — ${why||'sector input + demand channels'}.</span>
+        <span class="q">What happens next</span><span class="a">Rate channel feeds through over ~45–140 days (RBI reaction → auto/realty demand, bank NIM).</span>
+        <span class="q">Key assumption</span><span class="a">${gnm(topAssum[0])} → ${gnm(topAssum[1])} (strength ${Math.round(topAssum[3]*100)}%, confidence ${Math.round(topAssum[4]*100)}%): ${topAssum[6]}.</span>
+        <span class="q">Market is missing</span><span class="a">${gnm(blind[0][0])} — impact ${blind[0][1].impact>0?'+':''}${blind[0][1].impact.toFixed(2)} at just ${Math.round(GNODES[blind[0][0]][2]*100)}% coverage.</span>
+      </div></div>
+    <div class="split" style="margin-top:14px">
+      <div class="panel"><div class="ptitle">Who benefits <span class="act">${win.length}</span></div>${win.slice(0,6).map(([n,r])=>irow(n,r,maxA)).join('')}</div>
+      <div class="panel" style="grid-column:auto"><div class="ptitle">Who gets hurt <span class="act">${los.length}</span></div>${los.slice(0,6).map(([n,r])=>irow(n,r,maxA)).join('')}</div>
+    </div>
+    <div class="panel" style="margin-top:14px"><div class="ptitle">Opportunities · what the market is missing</div>
+      ${blind.slice(0,4).map(([n,r])=>`<div class="star"><svg class="ic" style="width:15px;height:15px;color:var(--info)"><use href="#i-layers"/></svg> <span class="sym">${gnm(n)}</span> <span class="num ${r.impact>0?'up':'down'}">${r.impact>0?'+':''}${r.impact.toFixed(2)}</span> <span class="meta">coverage ${Math.round(GNODES[n][2]*100)}%</span> <span class="tag" style="color:${r.impact>0?'var(--up)':'var(--down)'}">${r.impact>0?'under-covered beneficiary':'under-priced risk'}</span></div>`).join('')}
+    </div>`;}
+function renderScenariosJS(){
+  $('#scen').innerHTML=Object.entries(GSCEN).map(([id,[label,seeds]])=>{
+    const acc=gpropagate(seeds),co=companies(acc);
+    const win=co.filter(([,r])=>r.impact>0).sort((a,b)=>b[1].impact-a[1].impact).slice(0,3);
+    const los=co.filter(([,r])=>r.impact<0).sort((a,b)=>a[1].impact-b[1].impact).slice(0,3);
+    const cf=id.includes('drop')||id.includes('cut');
+    return `<div class="panel"><div class="ptitle">${cf?'<span style="color:var(--info)">counterfactual</span> · ':''}${label}</div>
+      <div style="padding:11px 14px"><div style="font-size:11px;color:var(--t3);margin-bottom:6px">BENEFITS</div>
+        ${win.map(([n,r])=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${gnm(n)}</span><span class="num up">+${r.impact.toFixed(2)}</span></div>`).join('')||'<div class="meta">—</div>'}
+        <div style="font-size:11px;color:var(--t3);margin:8px 0 6px">HURT</div>
+        ${los.map(([n,r])=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${gnm(n)}</span><span class="num down">${r.impact.toFixed(2)}</span></div>`).join('')||'<div class="meta">—</div>'}
+      </div></div>`;}).join('');}
+
+/* ===== Phase 2: prefer the canonical reasoning API; fall back to the JS engine offline ===== */
+let RAPI='http://127.0.0.1:6061',RAPI_OK=null,RSCENS=null;
+async function apiInit(){try{const r=await fetch(RAPI+'/reasoning/scenarios');if(!r.ok)throw 0;RSCENS=await r.json();RAPI_OK=true;}catch(e){RAPI_OK=false;}}
+function gchainAPI(ch){return ch.map(s=>s.why==='event'?s.name:` <b>→</b> ${s.name}`).join('');}
+function irowAPI(w,maxA){const pos=w.impact>0,wd=Math.min(Math.abs(w.impact)/maxA*50,50);return `<div class="irow"><span class="nm">${w.name}</span><div class="ibar"><div class="mid"></div><div class="f ${pos?'pos':'neg'}" style="width:${wd}%"></div></div><span class="ival ${pos?'up':'down'}">${pos?'+':''}${w.impact.toFixed(2)}</span><span class="icv">${Math.round(w.confidence*100)}%</span></div><div class="chainline">${gchainAPI(w.chain)} <b>· ~${w.horizon_days}d</b></div>`;}
+async function renderReason(id){window._ev=id;if(RAPI_OK===null)await apiInit();if(RAPI_OK){try{const r=await fetch(RAPI+'/reasoning/propagate?scenario='+id);renderReasonAPI(await r.json(),id);return;}catch(e){RAPI_OK=false;}}renderReasonJS(id);}
+function renderReasonAPI(d,id){window._ev=id;const all=[...d.winners,...d.losers],maxA=Math.max(...all.map(x=>Math.abs(x.impact)),.1);const m=d.macro_transmission,a=d.assumptions[0],opp=d.opportunities[0];const evs=(RSCENS||[]).filter(s=>['crude','repo','inr','ev_push','infra_boom','defence_push'].includes(s.id));$('#ev').innerHTML=evs.map(s=>`<button class="evbtn ${s.id===id?'on':''}" data-ev="${s.id}">${s.label}</button>`).join('');$$('#ev .evbtn').forEach(b=>b.onclick=()=>{renderReason(b.dataset.ev);paintFeed('reason');});
+  $('#rout').innerHTML=`
+    <div class="panel" style="margin-top:14px"><div class="ptitle">What the engine concludes <span class="act">${d.affected} entities traced</span></div>
+      <div class="qa">
+        <span class="q">What happened</span><span class="a">${d.label}.</span>
+        <span class="q">Why it matters</span><span class="a">${m.length?m.map(x=>`${x.name} ${x.impact>0?'+':''}${x.impact.toFixed(2)}`).join(' · '):'demand flows through the supply chain'}.</span>
+        <span class="q">Key assumption</span><span class="a">${a?`${a.src} → ${a.dst} (strength ${Math.round(a.strength*100)}%, confidence ${Math.round(a.confidence*100)}%): ${a.why}`:'—'}.</span>
+        <span class="q">Market is missing</span><span class="a">${opp?`${opp.name} — impact ${opp.impact>0?'+':''}${opp.impact.toFixed(2)} at ${Math.round(opp.coverage*100)}% coverage`:'—'}.</span>
+      </div></div>
+    <div class="split" style="margin-top:14px">
+      <div class="panel"><div class="ptitle">Who benefits <span class="act">${d.winners.length}</span></div>${d.winners.slice(0,7).map(w=>irowAPI(w,maxA)).join('')||'<div class="chainline" style="padding:14px">—</div>'}</div>
+      <div class="panel"><div class="ptitle">Who gets hurt <span class="act">${d.losers.length}</span></div>${d.losers.slice(0,6).map(w=>irowAPI(w,maxA)).join('')||'<div class="chainline" style="padding:14px">none in this slice — a broad tailwind</div>'}</div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="panel"><div class="ptitle">System-wide · sector impacts</div>${d.sector_impacts.slice(0,7).map(s=>`<div class="star"><span class="sym">${s.name}</span><span class="num ${s.impact>0?'up':'down'}" style="margin-left:auto">${s.impact>0?'+':''}${s.impact.toFixed(2)}</span></div>`).join('')}</div>
+      <div class="panel"><div class="ptitle">Opportunities · market is missing</div>${d.opportunities.slice(0,5).map(o=>`<div class="star"><svg class="ic" style="width:15px;height:15px;color:var(--info)"><use href="#i-layers"/></svg> <span class="sym">${o.name}</span> <span class="num ${o.impact>0?'up':'down'}">${o.impact>0?'+':''}${o.impact.toFixed(2)}</span> <span class="tag" style="color:${o.impact>0?'var(--up)':'var(--down)'}">${o.tag}</span></div>`).join('')}</div>
+    </div>
+    <div style="font-size:11px;color:var(--t3);padding:6px 2px">Live from the reasoning API (intelligence/service.py) · canonical engine</div>`;}
+async function renderScenarios(){if(RAPI_OK===null)await apiInit();if(RAPI_OK){const ids=['ev_push','infra_boom','defence_push','crudedrop','repocut','stagflation'];const cards=await Promise.all(ids.map(async id=>{const d=await(await fetch(RAPI+'/reasoning/propagate?scenario='+id)).json();const cf=id.includes('drop')||id.includes('cut');return `<div class="panel"><div class="ptitle">${cf?'<span style="color:var(--info)">counterfactual</span> · ':''}${d.label}</div><div style="padding:11px 14px"><div style="font-size:11px;color:var(--t3);margin-bottom:6px">BENEFITS</div>${d.winners.slice(0,3).map(w=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${w.name}</span><span class="num up">+${w.impact.toFixed(2)}</span></div>`).join('')||'<div class="meta">—</div>'}<div style="font-size:11px;color:var(--t3);margin:8px 0 6px">HURT</div>${d.losers.slice(0,3).map(w=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${w.name}</span><span class="num down">${w.impact.toFixed(2)}</span></div>`).join('')||'<div class="meta">none</div>'}</div></div>`;}));$('#scen').innerHTML=cards.join('');return;}renderScenariosJS();}
+
+/* ===== brain views: knowledge graph · alpha · memory (all from the reasoning API) ===== */
+function apiDown(){return `<div class="panel"><div class="stub"><svg class="ic"><use href="#i-alert"/></svg>Reasoning API not running<br><span style="font-size:12px;color:var(--t3)">start it: <code>uv run python intelligence/service.py</code></span></div></div>`;}
+async function renderGraph(){if(RAPI_OK===null)await apiInit();const el=$('#graphout');if(!RAPI_OK){el.innerHTML=apiDown();return;}const g=await(await fetch(RAPI+'/reasoning/graph')).json();const NM={};g.nodes.forEach(n=>NM[n.id]=n.name);const byType={};g.nodes.forEach(n=>{(byType[n.type]=byType[n.type]||[]).push(n);});
+  el.innerHTML=`<div class="strip" style="grid-template-columns:repeat(4,1fr)">
+    <div class="tile"><div class="lab">Entities</div><div class="val num">${g.nodes.length}</div></div>
+    <div class="tile"><div class="lab">Relationships</div><div class="val num">${g.edges.length}</div></div>
+    <div class="tile"><div class="lab">Node types</div><div class="val num">${Object.keys(byType).length}</div></div>
+    <div class="tile"><div class="lab">Avg confidence</div><div class="val num">${(g.edges.reduce((a,e)=>a+e.confidence,0)/g.edges.length).toFixed(2)}</div></div></div>
+    <div class="panel" style="margin-top:14px"><div class="ptitle">Entities by type</div><div style="padding:12px;display:flex;flex-wrap:wrap;gap:8px">${Object.entries(byType).sort((a,b)=>b[1].length-a[1].length).map(([t,ns])=>`<span class="tag" style="font-size:12px;padding:5px 11px">${t} · <b style="color:var(--t1)">${ns.length}</b></span>`).join('')}</div></div>
+    <div class="panel" style="margin-top:14px"><div class="ptitle">Causal edges <span class="act">sign · strength · confidence · lag</span></div><table><thead><tr><th>From</th><th>To</th><th>Sign</th><th>Str</th><th>Conf</th><th style="text-align:left">Rationale</th></tr></thead><tbody>${g.edges.slice(0,28).map(e=>`<tr><td class="sym">${NM[e.src]||e.src}</td><td>${NM[e.dst]||e.dst}</td><td class="${e.sign>0?'up':'down'}">${e.sign>0?'+':'−'}</td><td class="num">${e.strength.toFixed(2)}</td><td class="num">${e.confidence.toFixed(2)}</td><td style="text-align:left;color:var(--t2);font-size:11px">${e.why}</td></tr>`).join('')}</tbody></table></div>`;}
+async function renderAlpha(){if(RAPI_OK===null)await apiInit();const el=$('#alphaout');if(!RAPI_OK){el.innerHTML=apiDown();return;}const scn=['crude','ev_push','infra_boom','defence_push','inr','repo'];const feed=[];for(const s of scn){const d=await(await fetch(RAPI+'/reasoning/propagate?scenario='+s)).json();d.opportunities.forEach(o=>feed.push({...o,scenario:d.label}));}
+  const seen={};const uniq=feed.filter(o=>{const k=o.name+o.scenario;if(seen[k])return false;seen[k]=1;return true;}).sort((a,b)=>Math.abs(b.impact)*(1-b.coverage)-Math.abs(a.impact)*(1-a.coverage));
+  el.innerHTML=`<div class="panel"><div class="ptitle">Alpha feed · high impact × low coverage <span class="act">${uniq.length} signals</span></div>${uniq.slice(0,16).map(o=>`<div class="star"><svg class="ic" style="width:15px;height:15px;color:var(--info)"><use href="#i-target"/></svg> <span class="sym">${o.name}</span> <span class="num ${o.impact>0?'up':'down'}">${o.impact>0?'+':''}${o.impact.toFixed(2)}</span> <span class="meta">cov ${Math.round(o.coverage*100)}%</span> <span class="meta" style="margin-left:8px">via ${o.scenario}</span> <span class="tag" style="margin-left:auto;color:${o.impact>0?'var(--up)':'var(--down)'}">${o.tag}</span></div>`).join('')}</div>`;}
+async function renderMemory(){if(RAPI_OK===null)await apiInit();const el=$('#memout');if(!RAPI_OK){el.innerHTML=apiDown();return;}const c=await(await fetch(RAPI+'/memory/calibration')).json();
+  let cal=c.n?`<div class="strip" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><div class="lab">Scored predictions</div><div class="val num">${c.n}</div></div><div class="tile"><div class="lab">Hit-rate</div><div class="val num up">${Math.round(c.hit_rate*100)}%</div></div><div class="tile"><div class="lab">Brier score</div><div class="val num">${c.brier.toFixed(3)}</div></div></div>
+    <div class="panel" style="margin-top:14px"><div class="ptitle">Calibration curve · is a 70% call right ~70% of the time?</div><table><thead><tr><th style="text-align:left">Confidence band</th><th>n</th><th>Said</th><th>Was</th><th style="text-align:left">Verdict</th></tr></thead><tbody>${c.curve.map(b=>{const diff=b.avg_conf-b.actual_hit,v=Math.abs(diff)<=0.12?'well-calibrated':(diff>0?'over-confident':'under-confident');return `<tr><td style="text-align:left">${b.band}</td><td class="num">${b.n}</td><td class="num">${Math.round(b.avg_conf*100)}%</td><td class="num">${Math.round(b.actual_hit*100)}%</td><td style="text-align:left;color:${v==='well-calibrated'?'var(--up)':'var(--warn)'}">${v}</td></tr>`;}).join('')}</tbody></table></div>
+    <div class="panel" style="margin-top:14px"><div class="ptitle">Accuracy by sector <span class="act">which causal edges held</span></div>${c.by_sector.map(s=>`<div class="star"><span class="sym">${s.sector}</span><span class="num ${s.hit>=0.6?'up':'down'}" style="margin-left:auto">${Math.round(s.hit*100)}% &nbsp;<span class="meta">n=${s.n}</span></span></div>`).join('')}</div>`
+    :`<div class="panel"><div class="stub"><svg class="ic"><use href="#i-clock"/></svg>No scored predictions yet<br><span style="font-size:12px;color:var(--t3)">run <code>python intelligence/memory.py</code> to populate the memory</span></div></div>`;
+  const evs=['rbi_cut','crude_spike','budget_capex'],hs=await Promise.all(evs.map(e=>fetch(RAPI+'/hypothesis?event='+e).then(r=>r.json())));
+  const hyp=`<div class="h" style="margin-top:18px">Hypothesis lab <small>· what history says, with evidence</small></div><div class="grid3">${hs.map(h=>`<div class="panel"><div class="ptitle">${h.event_type.replace(/_/g,' ')} <span class="act">${h.episodes} episodes</span></div>${(h.sectors||[]).map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid var(--border);font-size:12.5px"><span>${s.sector}</span><span><span class="num ${s.avg_return>0?'up':'down'}">${s.avg_return>0?'+':''}${s.avg_return}%</span> <span class="meta">·${Math.round(s.consistency*100)}%·n${s.n}</span></span></div>`).join('')||'<div class="chainline" style="padding:14px">—</div>'}</div>`).join('')}</div>`;
+  el.innerHTML=cal+hyp;}
+
+paintFeed('cockpit');
+</script>
+</body>
+</html>
