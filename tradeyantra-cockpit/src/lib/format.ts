@@ -30,6 +30,13 @@ export function price(v: number | string): string {
   return nf2.format(n)
 }
 
+/** Grouped integer — for volume, quantity, open interest (no currency, no decimals). */
+export function count(v: number | string): string {
+  const n = num(v)
+  if (!isFinite(n)) return '—'
+  return nf0.format(Math.round(n))
+}
+
 /** Signed percentage, e.g. "+0.42%" / "−3.10%" — for gains/losses. */
 export function pct(v: number | string): string {
   const n = num(v)
