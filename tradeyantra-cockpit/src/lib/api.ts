@@ -103,12 +103,19 @@ export interface Quote {
 }
 export interface SymRef { symbol: string; exchange: string }
 export interface QuoteResult extends SymRef { data?: Quote; error?: string }
+export interface DepthLevel { price: number; quantity: number }
+export interface Depth {
+  asks: DepthLevel[]; bids: DepthLevel[]
+  high: number; low: number; ltp: number; ltq: number; oi: number
+  open: number; prev_close: number; totalbuyqty: number; totalsellqty: number; volume: number
+}
 
 export const trading = {
   funds: () => post<Funds>('funds'),
   positions: () => post<Position[]>('positionbook'),
   holdings: () => post<{ holdings: Holding[]; statistics: HoldingsStats }>('holdings'),
   quote: (symbol: string, exchange: string) => post<Quote>('quotes', { symbol, exchange }),
+  depth: (symbol: string, exchange: string) => post<Depth>('depth', { symbol, exchange }),
   // multiquotes returns { status, results } — not the usual { data } envelope.
   multiquotes: (symbols: SymRef[]) =>
     postJson<{ results: QuoteResult[] }>('multiquotes', { symbols }).then(j => j.results),

@@ -85,8 +85,8 @@ Algo-trade/
       │  ├─ useApi.ts           ← usePoll() — polls an endpoint, pauses when tab hidden
       │  └─ format.ts           ← ₹ / signed-₹ / % / up-down formatting (Indian grouping)
       ├─ components/            ← Icon.tsx, Copilot.tsx, DataState.tsx (graceful no-key/down panels)
-      └─ pages/                 ← Cockpit.tsx (live), Folio.tsx (live), Risk.tsx (live),
-                                   Setup.tsx (API key), Brain.tsx (Reason/…/Memory), Stub.tsx
+      └─ pages/                 ← Cockpit.tsx (live), Markets.tsx (live), Folio.tsx (live),
+                                   Risk.tsx (live), Setup.tsx (API key), Brain.tsx (Reason/…), Stub.tsx
 ```
 
 ---
@@ -112,7 +112,7 @@ Brain tabs (Reason/Scenario/Graph/Alpha/Memory) need #2 running, else they show 
 friendly "start the API" message. Cockpit + Folio + Risk now read LIVE from #1 — paste
 your OpenAlgo API key (from http://127.0.0.1:5000/apikey) into the cockpit's **Setup** tab
 once; without it (or without #1 running) they show a graceful "connect / start engine"
-state. Markets/Charts/Options/Trade are still prototype stubs (see §6).
+state. Charts/Options/Trade are still prototype stubs (see §6).
 
 To populate the Memory tab's calibration, run once:
 `cd openalgo && PYTHONUTF8=1 python intelligence/memory.py`
@@ -160,7 +160,7 @@ theme), Zerodha connected & live, runs locally.
 - ✅ **The real Vite app** (`tradeyantra-cockpit/`): builds clean, 13 modules routing,
   dark shell + copilot, and the **5 brain tabs wired LIVE to the reasoning API**
   (verified: Memory tab pulls real calibration).
-- ✅ **Cockpit + Folio + Risk wired to LIVE Zerodha data** (read-only slice, 2026-06-27/28):
+- ✅ **Cockpit + Markets + Folio + Risk wired to LIVE Zerodha data** (read-only slice, 2026-06-27/28):
   - API-key handling — key entered once on the new **Setup** page, stored in localStorage,
     injected into every `/api/v1` POST. Typed client + `usePoll` (auto-refresh ~5s, pauses
     when tab hidden) + graceful states (`no-key` → "Connect your broker", `down` → "engine
@@ -169,11 +169,14 @@ theme), Zerodha connected & live, runs locally.
     index pulse + watchlist via `multiquotes`. **Folio**: holdings + portfolio stats.
     **Risk**: margin-utilisation / exposure / concentration / Day-P&L tiles, margin gauge,
     exposure-by-position table, and a locally-set daily-loss kill-switch (alert only — no
-    auto square-off; that's a write action for the Trade pass). All computed from funds +
-    positions — no new endpoints. TopBar connection pill + Day P&L now honest.
-  - Verified via browser preview: build clean, all graceful states correct, AND all three
-    pages confirmed rendering populated data + correct ₹/%/P&L math (via a temporary fetch
-    stub of `/api/v1` shapes). Full *live* values still pending an authenticated engine (§6).
+    auto square-off; that's a write action for the Trade pass). **Markets**: selectable
+    watchlist, live L2 order book via `/api/v1/depth` (top-5 ladder + buy/sell imbalance),
+    quote summary (O/H/L/prev/vol/spread), and gainers/losers movers. All computed from
+    funds + positions + quotes/depth — no server changes. TopBar pill + Day P&L now honest.
+  - Verified via browser preview: build clean, all graceful states correct, AND every page
+    confirmed rendering populated data + correct ₹/%/P&L math + interactions (Markets
+    click-to-inspect refetches the book) via a temporary fetch stub of `/api/v1` shapes.
+    Full *live* values still pending an authenticated engine (§6).
 
 ---
 
@@ -186,7 +189,7 @@ theme), Zerodha connected & live, runs locally.
      on `NSE_INDEX`, `SENSEX` on `BSE_INDEX`, `INDIAVIX` — match your master contract; any
      mismatch just shows "—" per-card, non-breaking.)
    - **WebSocket feed** (port 8765) to replace the ~5s polling with streaming ticks.
-   - **Remaining surfaces:** Markets / Charts / Options / Trade still on the prototype design
+   - **Remaining surfaces:** Charts / Options / Trade still on the prototype design
      (see item 2). **Trade = order placement (write/dangerous)** — give it its own pass with
      confirmations + the order-mode/approval flow; don't fold it into a read-only port.
 2. **Port the prototype's module designs into React** — the prototype already has
